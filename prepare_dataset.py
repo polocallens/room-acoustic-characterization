@@ -103,9 +103,11 @@ def parse_args():
         help='Music sample Duration in seconds'
     )
     
-    parser.add_argument('--recompute', dest='recompute', action='store_true')
     parser.add_argument('--no-recompute', dest='recompute', action='store_false')
     parser.set_defaults(recompute=True)
+    
+    parser.add_argument('--rev_only', dest='rev_only', action='store_true')
+    parser.set_defaults(rev_only=False)
     
     return parser.parse_args()
 
@@ -144,7 +146,7 @@ def combinations(music_list,rir_list):
 #------------------------------------------------------------------------------------------
 def make_convolved_dataset(music_dir, rir_dir, output_folder, 
                            window_size = 645, mfcc_bands = 40, mfcc_degree = 0,
-                          chunk_duration_s = 30):
+                          chunk_duration_s = 30, rev_only = False):
     
     ac_params = ['t60','c50','c80','drr']
     
@@ -236,21 +238,24 @@ def make_convolved_dataset(music_dir, rir_dir, output_folder,
                 mfcc_delta2_rev = librosa.feature.delta(mfcc_rev, order=2)
                 mfcc_rev = np.dstack((mfcc_rev, mfcc_delta_rev, mfcc_delta2_rev))
 
-            #Concatenate music mfcc with reverberant music mfcc
-            with open(out_folder_name + "/" + music_name + ".pkl", "rb") as f:
-                if mfcc_degree == 0:
-                    mfcc = pickle.load(f)
-                    X = np.dstack((mfcc, mfcc_rev))
-                elif mfcc_degree == 1:
-                    [mfcc, mfcc_delta] = pickle.load(f)
-                    X = np.dstack((mfcc, mfcc_rev, mfcc_delta, mfcc_delta_rev))
-                elif mfcc_degree == 2:
-                    [mfcc, mfcc_delta, mfcc_delta2] = pickle.load(f)
-                    X = np.dstack((mfcc, mfcc_rev, mfcc_delta, mfcc_delta_rev, mfcc_delta2, mfcc_delta2_rev))
-                else: 
-                    print("Error : mfcc has to be between 0 and 2")
-                    return None
-                f.close()
+            if rev_only:
+                X = mfcc
+            else:
+                #Concatenate music mfcc with reverberant music mfcc
+                with open(out_folder_name + "/" + music_name + ".pkl", "rb") as f:
+                    if mfcc_degree == 0:
+                        mfcc = pickle.load(f)
+                        X = np.dstack((mfcc, mfcc_rev))
+                    elif mfcc_degree == 1:
+                        [mfcc, mfcc_delta] = pickle.load(f)
+                        X = np.dstack((mfcc, mfcc_rev, mfcc_delta, mfcc_delta_rev))
+                    elif mfcc_degree == 2:
+                        [mfcc, mfcc_delta, mfcc_delta2] = pickle.load(f)
+                        X = np.dstack((mfcc, mfcc_rev, mfcc_delta, mfcc_delta_rev, mfcc_delta2, mfcc_delta2_rev))
+                    else: 
+                        print("Error : mfcc has to be between 0 and 2")
+                        return None
+                    f.close()
                 
             #Save X files
             with open(output_folder + "X/" + str(i) + ".pkl", "wb") as f:
@@ -345,6 +350,6 @@ if __name__ == '__main__':
     
     print("Computing convolutions and reverberant mfccs...")
     make_convolved_dataset(chunkedNormedMusicDir, normedRirDir,  args.outDir, args.window_size,
-                           args.mfcc_bands, args.mfcc_degree, args.chunk_duration_s)
+                           args.mfcc_bands, args.mfcc_degree, args.chunk_duration_s, args.rev_only)
 
 
