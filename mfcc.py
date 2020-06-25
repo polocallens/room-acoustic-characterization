@@ -19,6 +19,21 @@ def feature_normalize(dataset):
     return (dataset - np.mean(dataset, axis=0)) / np.abs(dataset).max(axis=0)
 
 #------------------------------------------------------------------------------------------
+def compute_norm_mfcc(signal,fs,n_bands,hop_len,n_fft,window_size):
+    signal = feature_normalize(signal)
+    mfcc = librosa.feature.mfcc(y=signal, sr=fs, n_mfcc= n_bands,hop_length=hop_len, n_fft=n_fft)
+    mfcc = librosa.util.fix_length(mfcc, window_size, axis=1, mode='wrap') #Reshape to windom size
+    mfcc = librosa.util.normalize(mfcc, axis=1)
+    return mfcc
+
+#------------------------------------------------------------------------------------------
+def compute_norm_mfcc_2(signal,fs):
+    signal = feature_normalize(signal)
+    mfcc = librosa.feature.mfcc(y=signal, sr=fs)
+    #mfcc = librosa.util.fix_length(mfcc, window_size, axis=1, mode='wrap') #Reshape to windom size
+    mfcc = librosa.util.normalize(mfcc, axis=1)
+    return mfcc
+#------------------------------------------------------------------------------------------
 def compute_music_mfccs(music_dir,output_folder,window_size = 645, mfcc_bands = 40, mfcc_degree = 0,
                        chunk_duration_s = 30):
     
@@ -42,19 +57,13 @@ def compute_music_mfccs(music_dir,output_folder,window_size = 645, mfcc_bands = 
         filename = os.path.splitext(os.path.basename(music_name))[0]
 
         m_sr, music =  wavfile.read(music_name)
-        music = feature_normalize(music)
-        """try: 
-            
-            #music = music[:chunck_duration_s*m_sr]
-            
-            
-        except Exception as e:
-            print("Error encountered while parsing file: ", music_name)
-            return None 
-        """
-        mfcc = librosa.feature.mfcc(y=music, sr=m_sr, n_mfcc= mfcc_bands,hop_length=512, n_fft=1024)
-        mfcc = librosa.util.fix_length(mfcc, window_size, axis=1, mode='wrap') #Reshape to windom size
-        mfcc = librosa.util.normalize(mfcc, axis=1)
+        
+        mfcc = compute_norm_mfcc(signal = music,
+                                 fs = m_sr,
+                                 n_bands = mfcc_bands,
+                                 hop_len=512,
+                                 n_fft = 1024,
+                                 window_size = window_size)
             
         if mfcc_degree == 1:
             mfcc_delta = librosa.feature.delta(mfcc)

@@ -78,7 +78,59 @@ def t60_impulse(raw_signal,fs, bands, rt='t30'):  # pylint: disable=too-many-loc
         t60[band] = factor * (db_regress_end - db_regress_init)
     return t60
 
+
+#---------------------------------------------------------------------------------
+def t60_impulse_avg(raw_signal,fs, rt='t30'):  # pylint: disable=too-many-locals
+    """
+    Average reverberation time from a WAV impulse response.
+    :param file_name: name of the WAV file containing the impulse response.
+    :param rt: Reverberation time estimator. It accepts `'t30'`, `'t20'`, `'t10'` and `'edt'`.
+    :returns: Reverberation time :math:`T_{60}`
+    """
+
+    rt = rt.lower()
+    if rt == 't30':
+        init = -5.0
+        end = -35.0
+        factor = 2.0
+    elif rt == 't20':
+        init = -5.0
+        end = -25.0
+        factor = 3.0
+    elif rt == 't10':
+        init = -5.0
+        end = -15.0
+        factor = 6.0
+    elif rt == 'edt':
+        init = 0.0
+        end = -10.0
+        factor = 6.0
+
+
+    # Filtering signal
+    abs_signal = np.abs(raw_signal) / np.max(np.abs(raw_signal))
+
+    # Schroeder integration
+    sch = np.cumsum(abs_signal[::-1]**2)[::-1]
+    sch_db = 10.0 * np.log10(sch / np.max(sch))
+
+    # Linear regression
+    sch_init = sch_db[np.abs(sch_db - init).argmin()]
+    sch_end = sch_db[np.abs(sch_db - end).argmin()]
+    init_sample = np.where(sch_db == sch_init)[0][0]
+    end_sample = np.where(sch_db == sch_end)[0][0]
+    x = np.arange(init_sample, end_sample + 1) / fs
+    y = sch_db[init_sample:end_sample + 1]
+    slope, intercept = stats.linregress(x, y)[0:2]
+
+    # Reverberation time (T30, T20, T10 or EDT)
+    db_regress_init = (init - intercept) / slope
+    db_regress_end = (end - intercept) / slope
+    t60 = factor * (db_regress_end - db_regress_init)
+    return t60
 #------------------------------------------------------------------------------------------
+
+
 """def rir2t60(rir_dir, output_folder):
     t60s = []
     rir_list = sorted(glob.glob(rir_dir + '*.wav'))
@@ -105,6 +157,26 @@ def t60_impulse(raw_signal,fs, bands, rt='t30'):  # pylint: disable=too-many-loc
         f.close()
     return t60s
 """
+#------------------------------------------------------------------------------------------
+
+
+def clarity_avg(time, signal, fs):
+    """
+    Clarity :math:`C_i` determined from an impulse response.
+
+    :param time: Time in miliseconds (e.g.: 50, 80).
+    :param signal: Impulse response.
+    :type signal: :class:`np.ndarray`
+    :param fs: Sample frequency.
+    :param bands: Bands of calculation (optional). Only support standard octave and third-octave bands.
+    :type bands: :class:`np.ndarray`
+
+    """
+    h2 = signal**2.0
+    t = int((time / 1000.0) * fs + 1)
+    c = 10.0 * np.log10((np.sum(h2[:t]) / np.sum(h2[t:])))
+    return c
+
 #------------------------------------------------------------------------------------------
 def rir2clarity(rir_dir, output_folder,time):
     #Process all RIRs and save outputs as pkl
@@ -239,21 +311,21 @@ def drr(signal, fs, bands=None, debug = False):
     return drr
 
 #------------------------------------------------------------------------------------------
-def rir2drr(rir_dir, output_folder, bands=None):
+def rir2drr(rir_dir, output_folder = None, bands=None):
     
     rir_list = sorted(glob.glob(rir_dir + '*.wav'))
-    a=1
-    try:
-        os.mkdir(output_folder + "drr")
-    except:
-        print("drr folder already exist")
+    
+    if output_folder is not None:
+        try:
+            os.mkdir(output_folder + "drr")
+        except:
+            print("drr folder already exist")
         
     if bands is not None:
         drrs = np.empty((len(rir_list),len(bands)))
     else:
         drrs = np.empty(len(rir_list))
         
-    print(f'drr size = {drrs.shape}')
     #Process all RIRs and save outputs as pkl
     for i, rir_file in enumerate(tqdm(rir_list)):
         #print(f'RIR --> {rir_file}')
@@ -271,9 +343,11 @@ def rir2drr(rir_dir, output_folder, bands=None):
         #print(drrs)
         
         filename = os.path.splitext(os.path.basename(rir_file))[0]
-        with open(output_folder + "drr/" + filename + ".pkl", "wb") as f:
-            pickle.dump(drrs[i], f)
-        f.close()
+        
+        if output_folder is not None :
+            with open(output_folder + "drr/" + filename + ".pkl", "wb") as f:
+                pickle.dump(drrs[i], f)
+            f.close()
         
     #print(f'drr after log = {drrs}\n')
     return drrs

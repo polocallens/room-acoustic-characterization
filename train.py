@@ -40,8 +40,6 @@ from acoustics.bands import (_check_band_type, octave_low, octave_high, third_lo
 from time import time
 from argparse import ArgumentParser
 
-
-
 #---------------------------------------------------------------------------------
 # Parameters
 
