@@ -6,6 +6,7 @@ from normalize import *
 import os
 from argparse import ArgumentParser
 from scipy import signal
+import numpy as np
 
 def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')
@@ -34,6 +35,9 @@ def parse_args():
         help='output directory'
     )
     
+    parser.add_argument('--norm', dest='norm', action='store_true')
+    parser.set_defaults(norm=False)
+    
     return parser.parse_args()
     
 if __name__ == '__main__':
@@ -47,21 +51,23 @@ if __name__ == '__main__':
 
     #resample audio first 
     print('---norm music+rir directories---')
-    normed_music_dir = resample_audio_dir(music_dir,trim=args.trim)
-    normed_rir_dir = resample_audio_dir(rir_dir)
+    if args.norm :
+        music_dir = resample_audio_dir(music_dir,trim=args.trim)
+        rir_dir = resample_audio_dir(rir_dir)
+    
 
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
     print('---Convolving...---')
-    for music_file in tqdm.tqdm(glob.glob(normed_music_dir + '*')):
+    for music_file in tqdm.tqdm(glob.glob(music_dir + '*')):
 
         m_sr, music_sig = wavfile.read(music_file)
         music_sig = music_sig / np.max(np.abs(music_sig))
         
         music_name = os.path.splitext(os.path.basename(music_file))[0]
         
-        for rir_file in glob.glob(normed_rir_dir + '*'):
+        for rir_file in glob.glob(rir_dir + '*'):
             rir_sr, rir_sig = wavfile.read(rir_file)
             
             rir_sig = rir_sig / np.max(np.abs(rir_sig))
@@ -73,4 +79,3 @@ if __name__ == '__main__':
 
             wavfile.write(out_dir + music_name + '-' + os.path.basename(rir_file), m_sr, music_rev)
             
-    print('---Normalizing outputs---')
