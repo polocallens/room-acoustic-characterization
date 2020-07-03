@@ -1,0 +1,381 @@
+# Load various imports 
+import pandas as pd
+import os
+import librosa
+import glob
+import numpy as np
+import tensorflow as tf
+import keras.backend.tensorflow_backend as tfback
+
+import pickle
+from keras.layers import Permute
+from keras.layers import Conv1D, MaxPooling1D
+from keras.layers.recurrent import GRU, LSTM
+from tensorflow.keras.utils import Sequence
+from tensorflow import keras
+
+from keras.models import Sequential, Model
+from keras.layers import Dense, Dropout, Activation, Flatten, CuDNNLSTM, BatchNormalization
+from keras.layers import Convolution2D, Conv2D, MaxPooling2D, GlobalAveragePooling2D
+from keras.layers import Input, Reshape, TimeDistributed
+from keras.optimizers import Adam
+from keras.utils import np_utils
+from keras.callbacks import ModelCheckpoint 
+from keras.models import load_model
+from sklearn import metrics 
+from sklearn.model_selection import train_test_split 
+import datetime
+
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import Sequential
+from datetime import datetime
+
+from scipy import stats, signal
+import acoustics
+from acoustics.signal import bandpass
+from acoustics.bands import (_check_band_type, octave_low, octave_high, third_low, third_high)
+
+#from keras.callbacks import TensorBoard
+from time import time
+from argparse import ArgumentParser
+
+#---------------------------------------------------------------------------------
+# Parameters
+
+def parse_args():
+    parser = ArgumentParser(description='Training')
+    
+    parser.add_argument(
+        '-dataDir', '--dataDir',
+        type=str, default=None, required=True,
+        help='Data directory.'
+    )
+    
+    parser.add_argument(
+        '-name', '--name',
+        type=str, default=None, required = True,
+        help='Training label /!\ No space please.'
+    )
+    
+    parser.add_argument(
+        '-load_weights', '--load_weights',
+        type=str, default=None,
+        help='path to weights to load, default None does not load any.'
+    )
+
+    parser.add_argument(
+        '-n_epochs', '--n_epochs',
+        type=int, default=200,
+        help='Number of epochs before finish.'
+    )
+    
+    parser.add_argument(
+        '-window_size', '--window_size',
+        type=int, default=645,
+        help='Number of timesteps.'
+    )
+    
+    parser.add_argument(
+        '-mfcc_bands', '--mfcc_bands',
+        type=int, default=40,
+        help='Number of mfcc bands (along freq axis)'
+    )
+    
+    parser.add_argument(
+        '-mfcc_degree', '--mfcc_degree',
+        type=int, default=0,
+        help='Using additional delta mfcc layer (0,1 or 2).'
+    )
+    
+    parser.add_argument(
+        '-n_channels', '--n_channels',
+        type=int, default=2,
+        help='Numbers of mfccs stacked for input'
+    )
+    
+    parser.add_argument(
+        '-output_size', '--output_size',
+        type=int, default=13,
+        help='output shapes [number of freq bands]'
+    )
+    
+    parser.add_argument(
+        '-batch_size', '--batch_size',
+        type=int, default=64,
+        help='Network batch size'
+    )
+    
+    parser.add_argument(
+        '-y_param', '--y_param',
+        type=str, default='t60',
+        help='Output to learn : t60, drr, c50, c80, all'
+    )
+    
+    parser.add_argument(
+        '-net', '--net',
+        type = str, default = 'CRNN2D',
+        help='which neural net to train')
+    
+    parser.add_argument(
+        '-lr', '--learning_rate',
+        type = float, default = 0.001,
+        help='adam learning rate')
+    
+    parser.add_argument(
+        '-gpu', '--gpu',
+        type = int, default = 1,
+        help = 'gpu 0 or gpu 1 ')
+    return parser.parse_args()
+
+#---------------------------------------------------------------------------------
+def _get_available_gpus():
+    """Get a list of available gpu devices (formatted as strings).
+
+    # Returns
+        A list of available GPU devices.
+    """
+    #global _LOCAL_DEVICES
+    if tfback._LOCAL_DEVICES is None:
+        devices = tf.config.list_logical_devices()
+        tfback._LOCAL_DEVICES = [x.name for x in devices]
+    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
+
+#---------------------------------------------------------------------------------
+def CRNN2D(X_shape, nb_classes):
+    '''
+    Model used for evaluation in paper. Inspired by K. Choi model in:
+    https://github.com/keunwoochoi/music-auto_tagging-keras/blob/master/music_tagger_crnn.py
+    '''
+
+    nb_layers = 4  # number of convolutional layers
+    nb_filters = [64, 128, 128, 128]  # filter sizes
+    kernel_size = (3, 3)  # convolution kernel size
+    activation = 'elu'  # activation function to use after each layer
+    pool_size = [(2, 2), (4, 2), (4, 2), (4, 2),
+                 (4, 2)]  # size of pooling area
+
+    # shape of input data (frequency, time, channels)
+    input_shape = (X_shape[1], X_shape[2], X_shape[3])
+    frequency_axis = 1
+    time_axis = 2
+    channel_axis = 3
+
+    # Create sequential model and normalize along frequency axis
+    model = Sequential()
+    
+    model.add(BatchNormalization(axis=frequency_axis, input_shape=input_shape))
+   
+    # First convolution layer specifies shape
+    model.add(Conv2D(nb_filters[0], kernel_size=kernel_size, padding='same',
+                     data_format="channels_last",
+                     input_shape=input_shape))
+    model.add(Activation(activation))
+    model.add(BatchNormalization(axis=channel_axis))
+    model.add(MaxPooling2D(pool_size=pool_size[0], strides=pool_size[0],))
+    model.add(Dropout(0.1))
+
+    # Add more convolutional layers
+    for layer in range(nb_layers - 1):
+        # Convolutional layer
+        model.add(Conv2D(nb_filters[layer + 1], kernel_size=kernel_size,
+                         padding='same'))
+        model.add(Activation(activation))
+        model.add(BatchNormalization(
+            axis=channel_axis))  # Improves overfitting/underfitting
+        model.add(MaxPooling2D(pool_size=pool_size[layer + 1],
+                               strides=pool_size[layer + 1],
+                              data_format="channels_first"))  # Max pooling
+        model.add(Dropout(0.1))
+
+        # Reshaping input for recurrent layer
+    # (frequency, time, channels) --> (time, frequency, channel)
+    model.add(Permute((time_axis, frequency_axis, channel_axis)))
+    resize_shape = model.output_shape[2] * model.output_shape[3]
+    model.add(Reshape((model.output_shape[1], resize_shape)))
+
+    # recurrent layer
+    model.add(GRU(32, return_sequences=True))
+    model.add(GRU(32, return_sequences=False))
+    model.add(Dropout(0.3))
+
+    # Output layer
+    model.add(Dense(nb_classes))
+    model.add(Activation("relu"))
+    return model
+
+#---------------------------------------------------------------------------------
+"""
+Input parameters :
+dataset_folder = path to where dataset resides
+list_IDs = array of ids 
+mfcc_degree = 0->mfcc ; 1->mfcc+delta ; 2->mfcc+delta+deltadelta
+window_size = number of frames (cols)
+mfcc_bands = number of spectrogram frequency buckets (rows)
+output_size = number of frequency bands to predict
+n_channels = number of parallel input mfcc
+batch_size = size of the batch
+shuffle 
+"""    
+
+
+class DataGenerator_loader(Sequence):
+    'Generates data for Keras'
+    def __init__(self, dataset_folder, list_IDs,
+                 window_size, mfcc_bands,
+                 mfcc_degree, y_param,
+                 n_channels,
+                 output_size,
+                 batch_size, 
+                 shuffle=True):
+        'Initialization'
+        self.list_IDs = list_IDs
+        self.dataset_folder = dataset_folder
+        self.window_size = window_size
+        self.mfcc_bands = mfcc_bands
+        self.y_param = y_param
+        self.n_channels = n_channels
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+        self.output_size = output_size
+        self.bands = acoustics.bands.third(500,8000)
+        self.params = ['t60','drr','c50','c80']
+        #print(f'output size is {self.output_size}')
+        #all combinaisons of music and rirs # format = [music_name, rir_name]
+        #self.combinations = np.stack(np.meshgrid(self.music_list,self.rir_list),-1).reshape(-1,2)
+        self.on_epoch_end()
+
+    def __len__(self):
+        'Denotes the number of batches per epoch'
+        return int(np.floor(len(self.list_IDs) / self.batch_size))
+
+    def __getitem__(self, index):
+        'Generate one batch of data'
+        # Generate indexes of the batch
+        indexes = self.indexes[index*self.batch_size:(index+1)*self.batch_size]
+        # Find list of IDs
+        list_IDs_temp = [self.list_IDs[k] for k in indexes]
+
+        # Generate data
+        X, y = self.__data_generation(list_IDs_temp)
+        
+        return X, y
+
+    def on_epoch_end(self):
+        'Updates indexes after each epoch'
+        self.indexes = np.arange(len(self.list_IDs))
+        if self.shuffle == True:
+            np.random.shuffle(self.indexes)
+
+    def __data_generation(self, list_IDs_temp):
+        'Generates data containing batch_size samples' # X : (n_samples, *dim, n_channels)
+        ###### X and y Initialization
+        X = np.empty((self.batch_size, self.mfcc_bands, self.window_size, self.n_channels))
+       
+        if self.y_param == 'all':
+            y = np.empty((self.batch_size, len(self.params), self.output_size))
+        elif self.output_size == 1:
+            y = np.empty(self.batch_size)
+        else: 
+            y = np.empty((self.batch_size, self.output_size))
+
+        ###### Generate data
+        
+        #Load mfccs
+        for i, index in enumerate(list_IDs_temp):
+            
+            with open(self.dataset_folder + 'X/' + str(index) + '.pkl', "rb") as f:
+                X[i] = pickle.load(f)
+            f.close()
+            if(np.isnan(np.sum(X[i]))):
+                print(f'\nfuckin hell X--> {i}')
+                #if i==1: print(f'\n X = {X[i].shape}\n')
+            
+
+            #Load output
+            if self.y_param == 'all':
+                for j,param in enumerate(self.params):
+                    with open(self.dataset_folder + 'y/' + str(param) + '/' + str(index) + '.pkl', "rb") as f:
+                        y[i,j] = pickle.load(f)
+                    f.close()
+            else:
+                with open(self.dataset_folder + 'y/' + self.y_param + '/' + str(index) + '.pkl', "rb") as f:
+                    y[i] = pickle.load(f)
+                f.close()
+                
+                if(np.isnan(np.sum(y[i]))):
+                    print(f'\nfuckin hell y --> {index}')
+                    #if i==1: print(f'\ny value = {y[i]}\n')
+        return X, y
+
+    
+if __name__ == '__main__':
+    # Parse command-line arguments
+    args = parse_args()
+    
+    # Parameters
+    params = {'window_size': args.window_size,
+              'mfcc_bands': args.mfcc_bands,
+              'mfcc_degree': args.mfcc_degree,
+              'y_param': str(args.y_param),
+              'n_channels': args.n_channels,
+              'batch_size': args.batch_size,
+              'output_size': args.output_size,
+              'shuffle': False}
+    
+    #Setup GPUs environment
+    tfback._get_available_gpus = _get_available_gpus
+
+    os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"]= "1"
+
+    
+    print("\n\n-----Parameters-----\n")
+    for i in params:
+        print(f'{i} : {params[i]}')
+    print('\n')
+    
+    
+    nb_samples = len(glob.glob(args.dataDir+'X/*'))
+    print(f'nb samples = {nb_samples}')
+    indexes = np.arange(nb_samples)
+
+    #Split train/test
+    train_indexes, test_indexes = train_test_split(indexes,test_size=0.2, random_state=42)
+
+    # Generators
+    training_generator = DataGenerator_loader(args.dataDir, train_indexes, **params)
+    validation_generator = DataGenerator_loader(args.dataDir, test_indexes, **params)
+
+    # Define model
+    #model = eval(args.net)((None,params['mfcc_bands'], params['window_size'],params['n_channels']), args.output_size)
+
+    model = CRNN2D((None,40, 645 ,2), 13)
+    
+    #load previous weights
+    if(args.load_weights):
+        print("\n------Loading weights------\n")
+        model.load_weights(args.load_weights)
+
+    #Setup optimizer
+    opt = keras.optimizers.Adam(learning_rate=0.001)
+    model.compile(loss='mean_squared_error', optimizer = opt) 
+
+    #Callbacks
+    checkpointer = ModelCheckpoint(filepath='weights.best.' + str(args.name) + '.hdf5', 
+                                   verbose=1, save_best_only=True)
+
+    logdir = "logs/" + str(args.name)# + datetime.now().strftime("%Y%m%d-%H%M%S")
+    tensorboard = TensorBoard(log_dir=logdir,profile_batch=0,update_freq='batch')
+    
+    # Train model on dataset
+    model.fit(training_generator,
+              validation_data=validation_generator,
+              epochs = args.n_epochs,
+              use_multiprocessing=False,
+              callbacks=[checkpointer,tensorboard],
+              workers=1)
+
+
+    evaluate_generator(generator, steps=None, callbacks=None, max_queue_size=10, workers=1, use_multiprocessing=False, verbose=0)
+
