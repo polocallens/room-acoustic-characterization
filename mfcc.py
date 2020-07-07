@@ -27,6 +27,13 @@ def compute_norm_mfcc(signal,fs,n_bands,hop_len,n_fft,window_size):
     return mfcc
 
 #------------------------------------------------------------------------------------------
+def compute_norm_mfcc_3(signal,sr):
+    signal = feature_normalize(signal)
+    mfcc = librosa.feature.mfcc(y=signal, sr=sr, n_mfcc=40, hop_length=int(0.016*sr), n_fft=int(0.04*sr))
+    mfcc = librosa.util.normalize(mfcc, axis=1)
+    return mfcc
+
+#------------------------------------------------------------------------------------------
 def compute_norm_mfcc_2(signal,fs):
     signal = feature_normalize(signal)
     mfcc = librosa.feature.mfcc(y=signal, sr=fs)

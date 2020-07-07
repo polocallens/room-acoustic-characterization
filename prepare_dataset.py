@@ -349,7 +349,6 @@ if __name__ == '__main__':
 
     
     print("Computing convolutions and reverberant mfccs...")
-    make_convolved_dataset(chunkedNormedMusicDir, normedRirDir,  args.outDir, args.window_size,
-                           args.mfcc_bands, args.mfcc_degree, args.chunk_duration_s, args.rev_only)
+    make_convolved_dataset(chunkedNormedMusicDir, normedRirDir,  args.outDir, args.window_size, args.mfcc_bands, args.mfcc_degree, args.chunk_duration_s, args.rev_only)
 
 

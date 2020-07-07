@@ -5,8 +5,8 @@ from scipy.io import wavfile
 from normalize import *
 import os
 from argparse import ArgumentParser
-from scipy import signal
 import numpy as np
+from scipy.signal import fftconvolve
 
 def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')
@@ -50,12 +50,15 @@ if __name__ == '__main__':
 
 
     #resample audio first 
-    print('---norm music+rir directories---')
+    
     if args.norm :
+        print('---norm music+rir directories---')
         music_dir = resample_audio_dir(music_dir,trim=args.trim)
         rir_dir = resample_audio_dir(rir_dir)
+    else :
+        print("Skipping normalization, make sure you selected already normed samples")
     
-
+    
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
 
@@ -63,19 +66,29 @@ if __name__ == '__main__':
     for music_file in tqdm.tqdm(glob.glob(music_dir + '*')):
 
         m_sr, music_sig = wavfile.read(music_file)
-        music_sig = music_sig / np.max(np.abs(music_sig))
+        music_sig = (music_sig / np.max(np.abs(music_sig))).flatten()
         
         music_name = os.path.splitext(os.path.basename(music_file))[0]
-        
+        #print(f'zik : {music_name}')
+
         for rir_file in glob.glob(rir_dir + '*'):
+            rir_name = os.path.splitext(os.path.basename(rir_file))[0]
+
+            if os.path.exists(out_dir + rir_name + '/' + music_name + '.wav'):
+                continue
+                
             rir_sr, rir_sig = wavfile.read(rir_file)
             
-            rir_sig = rir_sig / np.max(np.abs(rir_sig))
+            
+            if not os.path.exists(out_dir + rir_name):
+                os.mkdir(out_dir+rir_name)
+            #print(f'rir : {rir_file}')
+            
+            rir_sig = (rir_sig / np.max(np.abs(rir_sig))).flatten()
                         
-            music_rev = signal.fftconvolve(music_sig, rir_sig, mode="full")
+            music_rev = fftconvolve(music_sig, rir_sig, mode="full")
             music_rev = music_rev[:len(music_sig)]
             
             music_rev = music_rev / np.max(np.abs(music_rev))
 
-            wavfile.write(out_dir + music_name + '-' + os.path.basename(rir_file), m_sr, music_rev)
-            
+            wavfile.write(out_dir + rir_name + '/' + music_name + '.wav', m_sr, music_rev)

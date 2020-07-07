@@ -288,9 +288,7 @@ class DataGenerator_loader(Sequence):
                 X[i] = pickle.load(f)
             f.close()
             if(np.isnan(np.sum(X[i]))):
-                print(f'\nfuckin hell X--> {i}')
-                #if i==1: print(f'\n X = {X[i].shape}\n')
-            
+                print(f'\nWARNING : Nan value found in {i}')            
 
             #Load output
             if self.y_param == 'all':
@@ -307,7 +305,7 @@ class DataGenerator_loader(Sequence):
                     print(f'\nfuckin hell y --> {index}')
                     #if i==1: print(f'\ny value = {y[i]}\n')
         return X, y
-
+    
     
 if __name__ == '__main__':
     # Parse command-line arguments

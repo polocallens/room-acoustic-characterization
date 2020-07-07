@@ -147,7 +147,7 @@ def t60_impulse_avg(raw_signal,fs, rt='t30'):  # pylint: disable=too-many-locals
             print("Error encountered while parsing file: ",rir_file)
             return None 
 
-        bands = acoustics.bands.third(500,8000)
+        bands = acoustics.bands.third(500,6000)
 
         t60 = t60_impulse(rir, rir_sr,  bands, rt='t30')
         t60s.append(t60)
@@ -194,7 +194,7 @@ def rir2clarity(rir_dir, output_folder,time):
             print("Error encountered while parsing file: ",rir_file)
             return None 
 
-        bands = acoustics.bands.third(500,8000)
+        bands = acoustics.bands.third(500,6000)
         
         clarity = acoustics.room.clarity(time, rir, rir_sr, bands)
         clarities.append(clarity)
@@ -353,7 +353,7 @@ def rir2drr(rir_dir, output_folder = None, bands=None):
     return drrs
 
 #------------------------------------------------------------------------------------------
-def rir2t60(rir_dir, output_folder,bands = acoustics.bands.third(500,8000)):
+def rir2t60(rir_dir, output_folder,bands = acoustics.bands.third(500,6000)):
     #t60s = []
     rir_list = sorted(glob.glob(rir_dir + '*.wav'))
     try:
@@ -375,7 +375,7 @@ def rir2t60(rir_dir, output_folder,bands = acoustics.bands.third(500,8000)):
             print("Error encountered while parsing file: ",rir_file)
             return None 
 
-        #bands = acoustics.bands.third(500,8000)
+        #bands = acoustics.bands.third(500,6000)
 
         t60s[i] = t60_impulse(rir, rir_sr,  bands, rt='t30')
         
@@ -402,7 +402,7 @@ def rir2t60(rir_dir, output_folder,bands = acoustics.bands.third(500,8000)):
             print("Error encountered while parsing file: ",rir_file)
             return None 
 
-        bands = acoustics.bands.third(500,8000)
+        bands = acoustics.bands.third(500,6000)
 
         t60 = t60_impulse(rir, rir_sr,  bands, rt='t30')
         t60s.append(t60)
