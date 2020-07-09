@@ -39,4 +39,8 @@ if __name__ == '__main__':
     
     subprocess.run(["python", "acoustic_param_ds_maker.py", "-rirDir", args.rirDir, "-outDir", args.outDir + 'acoustic_true_vals/'])
     
-    subprocess.run(["python", "convolute.py", "-audioDir", args.audioDir, ])
+    ##TODO if time allows --> See how to return normed dir from there 
+    
+    subprocess.run(["python", "convolute.py", 
+                    "-audioDir", args.audioDir, 
+                    "-rirDir" , args.rirDir])

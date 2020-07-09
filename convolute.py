@@ -60,7 +60,6 @@ if __name__ == '__main__':
     else :
         print("Skipping normalization, make sure you selected already normed samples")
     
-    
     if not os.path.exists(outDir):
         os.makedirs(outDir)
 
