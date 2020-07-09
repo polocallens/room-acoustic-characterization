@@ -2,7 +2,7 @@ import os
 from argparse import ArgumentParser
 
 # Custom imports
-from utils/acoustic_utils import *
+from utils.acoustic_utils import *
 
 
 def parse_args():

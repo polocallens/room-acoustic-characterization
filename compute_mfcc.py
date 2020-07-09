@@ -7,8 +7,8 @@ import os
 from argparse import ArgumentParser
 
 #custom imports
-from utils/normalize import *
-from utils/mfcc import *
+from utils.normalize import *
+from utils.mfcc import *
 
 def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')
@@ -34,7 +34,7 @@ if __name__ == '__main__':
         
     for room in tqdm(glob.glob(args.revDir + '*')):
         room_name = os.path.split(room)[1]
-        if not os.exists(args.outDir + room_name):
+        if not os.path.exists(args.outDir + room_name):
             os.makedirs(args.outDir + room_name)
             
         for audio_sample_path in tqdm(glob.glob(room + '/*.wav')):

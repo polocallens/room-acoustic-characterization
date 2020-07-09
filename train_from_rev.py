@@ -32,7 +32,7 @@ from time import time
 from argparse import ArgumentParser
 
 # Custom imports
-from utils/models import *
+from utils.models import *
 
 #---------------------------------------------------------------------------------
 # Parameters

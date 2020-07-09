@@ -8,7 +8,7 @@ import numpy as np
 from scipy.signal import fftconvolve
 
 # Custom imports
-from utils/normalize import *
+from utils.normalize import *
 
 def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')
