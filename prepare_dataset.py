@@ -1,63 +1,25 @@
 # Load various imports 
-import pandas as pd
 import os
 import librosa
 import glob
 import numpy as np
-import tensorflow as tf
-import keras.backend.tensorflow_backend as tfback
-
 import pickle
 from tqdm import tqdm
-
-from keras.layers import Permute
-from keras.layers import Conv1D, MaxPooling1D
-from keras.layers.recurrent import GRU, LSTM
-from tensorflow.keras.utils import Sequence
-
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Activation, Flatten, CuDNNLSTM, BatchNormalization
-from keras.layers import Convolution2D, Conv2D, MaxPooling2D, GlobalAveragePooling2D
-from keras.layers import Input, Reshape, TimeDistributed
-from keras.optimizers import Adam
-from keras.utils import np_utils
-from keras.callbacks import ModelCheckpoint 
-from keras.models import load_model
-from sklearn import metrics 
-from sklearn.model_selection import train_test_split 
-import datetime
-
 import scipy.io.wavfile as wavfile
-
 from subprocess import call
-
-from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.layers import *
-from tensorflow.keras.models import Sequential
-
-from scipy import stats, signal
-import acoustics
-from acoustics.signal import bandpass
-from acoustics.bands import (octave_low, octave_high, third_low, third_high)
-
+from scipy import signal
 from argparse import ArgumentParser
 
-
-#from keras.callbacks import TensorBoard
-from time import time
-
+#avoid librosa warnings
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module='librosa')
-
-
 #---------------------------------------------------------------------------------
+# My imports
 from mfcc import *
 from acoustic_utils import *
-    
-    
-    
-# Parameters
 
+    
+# Arguments definition
 def parse_args():
     parser = ArgumentParser(description='Data preparation')
     
@@ -111,25 +73,7 @@ def parse_args():
     
     return parser.parse_args()
 
-#---------------------------------------------------------------------------------
-def _get_available_gpus():
-    """Get a list of available gpu devices (formatted as strings).
-
-    # Returns
-        A list of available GPU devices.
-    """
-    #global _LOCAL_DEVICES
-    if tfback._LOCAL_DEVICES is None:
-        devices = tf.config.list_logical_devices()
-        tfback._LOCAL_DEVICES = [x.name for x in devices]
-    return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
-
-tfback._get_available_gpus = _get_available_gpus
-
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
-
-#---------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
 def feature_normalize(dataset):
     return (dataset - np.mean(dataset, axis=0)) / np.abs(dataset).max(axis=0)
 
@@ -191,21 +135,16 @@ def make_convolved_dataset(music_dir, rir_dir, output_folder,
             continue
 
         else:
-            #Load and normalize audio files
-            #print(f'path : {music_path}\n')
-            
+            #Load and normalize audio files            
             try: 
-                #music, m_sr = librosa.load(music_path, res_type='kaiser_fast')
                 m_sr, music = wavfile.read(music_path)
                 music = feature_normalize(music)
-                #music = music[:chunk_duration_s*m_sr]
 
             except Exception as e:
                 print("Error encountered while parsing music file: ", music_path)
                 return None 
 
             try:
-                #rir, rir_sr = librosa.load(rir_path, res_type='kaiser_fast')
                 rir_sr, rir = wavfile.read(rir_path)
             except:
                 print("Error encountered while parsing rir file: ",rir_path)
