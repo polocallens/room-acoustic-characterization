@@ -3,10 +3,12 @@ import glob
 import pickle
 from tqdm import tqdm
 from scipy.io import wavfile
-from normalize import *
-from mfcc import *
 import os
 from argparse import ArgumentParser
+
+#custom imports
+from utils/normalize import *
+from utils/mfcc import *
 
 def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')

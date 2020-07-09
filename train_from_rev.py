@@ -8,16 +8,7 @@ import tensorflow as tf
 import keras.backend.tensorflow_backend as tfback
 
 import pickle
-#from keras.layers import Permute
-#from keras.layers import Conv1D, MaxPooling1D
-#from keras.layers.recurrent import GRU, LSTM
-#from tensorflow.keras.utils import Sequence
-#from tensorflow import keras
 
-#from keras.models import Sequential, Model
-#from keras.layers import Dense, Dropout, Activation, Flatten, CuDNNLSTM, BatchNormalization
-#from keras.layers import Convolution2D, Conv2D, MaxPooling2D, GlobalAveragePooling2D
-#from keras.layers import Input, Reshape, TimeDistributed
 from keras.optimizers import Adam
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint 
@@ -40,7 +31,8 @@ from acoustics.bands import (_check_band_type, octave_low, octave_high, third_lo
 from time import time
 from argparse import ArgumentParser
 
-from models import *
+# Custom imports
+from utils/models import *
 
 #---------------------------------------------------------------------------------
 # Parameters

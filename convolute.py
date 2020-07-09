@@ -1,12 +1,14 @@
-#Generates reverberant music and speech
+# Generates reverberant music and speech
 import glob
 import tqdm
 from scipy.io import wavfile
-from normalize import *
 import os
 from argparse import ArgumentParser
 import numpy as np
 from scipy.signal import fftconvolve
+
+# Custom imports
+from utils/normalize import *
 
 def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')
