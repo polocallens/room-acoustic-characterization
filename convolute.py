@@ -14,7 +14,7 @@ def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')
     
     parser.add_argument(
-        '-signalDir', '--signalDir',
+        '-audioDir', '--audioDir',
         type=str, default=None, required=True,
         help='Music directory.'
     )
@@ -34,7 +34,7 @@ def parse_args():
     parser.add_argument(
         '-trim', '--trim',
         type=int, default=None, 
-        help='output directory'
+        help='Audio length in seconds'
     )
     
     parser.add_argument('--norm', dest='norm', action='store_true')
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     # Parse command-line arguments
     args = parse_args()
     
-    signalDir = args.signalDir
+    audioDir = args.audioDir
     rirDir = args.rirDir
     outDir = args.outDir
 
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     
     if args.norm :
         print('---norm music+rir directories---')
-        signalDir = resample_audio_dir(signalDir,trim=args.trim)
+        audioDir = resample_audio_dir(audioDir,trim=args.trim)
         rirDir = resample_audio_dir(rirDir)
     else :
         print("Skipping normalization, make sure you selected already normed samples")
@@ -65,7 +65,7 @@ if __name__ == '__main__':
         os.makedirs(outDir)
 
     print('---Convolving...---')
-    for music_file in tqdm.tqdm(glob.glob(signalDir + '*')):
+    for music_file in tqdm.tqdm(glob.glob(audioDir + '*')):
 
         m_sr, music_sig = wavfile.read(music_file)
         music_sig = (music_sig / np.max(np.abs(music_sig))).flatten()
