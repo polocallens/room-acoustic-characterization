@@ -216,9 +216,7 @@ class DataGenerator(Sequence):
 
         X = np.empty((self.batch_size, self.mfcc_bands, self.window_size, self.n_channels))
        
-        if self.y_param == 'all':
-            y = np.empty((self.batch_size, len(self.params), self.output_size))
-        elif self.output_size == 1:
+        if self.output_size == 1:
             y = np.empty(self.batch_size)
         else: 
             y = np.empty((self.batch_size, self.output_size))
@@ -242,8 +240,10 @@ class DataGenerator(Sequence):
             if self.y_param == 'all':
                 for j,param in enumerate(self.params):
                     with open(self.y_dir + param + '/' + room_name + '.pkl', "rb") as f:
-                        y[i,j] = pickle.load(f)
+                        buffer = np.concatenate(buffer, pickle.load(f))
                     f.close()
+                y[i] = buffer
+                
             else:
                 with open(self.y_dir + self.y_param + '/' + room_name + '.pkl', "rb") as f:
                     y[i] = pickle.load(f)
@@ -281,10 +281,6 @@ if __name__ == '__main__':
         print(f'{i} : {params[i]}')
     print('\n')
     
-    
-    """nb_samples = len(glob.glob(args.dataDir+'X/*'))
-    print(f'nb samples = {nb_samples}')
-    indexes = np.arange(nb_samples)"""
     
     print("parsing x file paths...")
     paths_list = glob.glob(args.xDir + '*/*.pkl')
