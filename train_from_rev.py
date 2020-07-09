@@ -8,16 +8,16 @@ import tensorflow as tf
 import keras.backend.tensorflow_backend as tfback
 
 import pickle
-from keras.layers import Permute
-from keras.layers import Conv1D, MaxPooling1D
-from keras.layers.recurrent import GRU, LSTM
-from tensorflow.keras.utils import Sequence
-from tensorflow import keras
+#from keras.layers import Permute
+#from keras.layers import Conv1D, MaxPooling1D
+#from keras.layers.recurrent import GRU, LSTM
+#from tensorflow.keras.utils import Sequence
+#from tensorflow import keras
 
-from keras.models import Sequential, Model
-from keras.layers import Dense, Dropout, Activation, Flatten, CuDNNLSTM, BatchNormalization
-from keras.layers import Convolution2D, Conv2D, MaxPooling2D, GlobalAveragePooling2D
-from keras.layers import Input, Reshape, TimeDistributed
+#from keras.models import Sequential, Model
+#from keras.layers import Dense, Dropout, Activation, Flatten, CuDNNLSTM, BatchNormalization
+#from keras.layers import Convolution2D, Conv2D, MaxPooling2D, GlobalAveragePooling2D
+#from keras.layers import Input, Reshape, TimeDistributed
 from keras.optimizers import Adam
 from keras.utils import np_utils
 from keras.callbacks import ModelCheckpoint 
@@ -27,8 +27,8 @@ from sklearn.model_selection import train_test_split
 import datetime
 
 from tensorflow.keras.callbacks import TensorBoard
-from tensorflow.keras.layers import *
-from tensorflow.keras.models import Sequential
+#from tensorflow.keras.layers import *
+#from tensorflow.keras.models import Sequential
 from datetime import datetime
 
 from scipy import stats, signal
@@ -40,6 +40,8 @@ from acoustics.bands import (_check_band_type, octave_low, octave_high, third_lo
 from time import time
 from argparse import ArgumentParser
 
+from models import *
+
 #---------------------------------------------------------------------------------
 # Parameters
 
@@ -49,13 +51,19 @@ def parse_args():
     parser.add_argument(
         '-xDir', '--xDir',
         type=str, default=None, required=True,
-        help='Mfvv data directory.'
+        help='Mfcc data directory.'
     )
     
     parser.add_argument(
         '-yDir', '--yDir',
         type=str, default=None, required=True,
         help='true acoustic values (from rir) directory.'
+    )
+    
+    parser.add_argument(
+        '-outDir', '--outDir',
+        type=str, default='logs',
+        help='output directory where to save logs and weights'
     )
     
     parser.add_argument(
@@ -148,69 +156,7 @@ def _get_available_gpus():
     return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
 
 #---------------------------------------------------------------------------------
-def CRNN2D(X_shape, nb_classes):
-    '''
-    Model used for evaluation in paper. Inspired by K. Choi model in:
-    https://github.com/keunwoochoi/music-auto_tagging-keras/blob/master/music_tagger_crnn.py
-    '''
 
-    nb_layers = 4  # number of convolutional layers
-    nb_filters = [64, 128, 128, 128]  # filter sizes
-    kernel_size = (3, 3)  # convolution kernel size
-    activation = 'elu'  # activation function to use after each layer
-    pool_size = [(2, 2), (4, 2), (4, 2), (4, 2),
-                 (4, 2)]  # size of pooling area
-
-    # shape of input data (frequency, time, channels)
-    input_shape = (X_shape[1], X_shape[2], X_shape[3])
-    frequency_axis = 1
-    time_axis = 2
-    channel_axis = 3
-
-    # Create sequential model and normalize along frequency axis
-    model = Sequential()
-    
-    model.add(BatchNormalization(axis=frequency_axis, input_shape=input_shape))
-   
-    # First convolution layer specifies shape
-    model.add(Conv2D(nb_filters[0], kernel_size=kernel_size, padding='same',
-                     data_format="channels_last",
-                     input_shape=input_shape))
-    model.add(Activation(activation))
-    model.add(BatchNormalization(axis=channel_axis))
-    model.add(MaxPooling2D(pool_size=pool_size[0], strides=pool_size[0],))
-    model.add(Dropout(0.1))
-
-    # Add more convolutional layers
-    for layer in range(nb_layers - 1):
-        # Convolutional layer
-        model.add(Conv2D(nb_filters[layer + 1], kernel_size=kernel_size,
-                         padding='same'))
-        model.add(Activation(activation))
-        model.add(BatchNormalization(
-            axis=channel_axis))  # Improves overfitting/underfitting
-        model.add(MaxPooling2D(pool_size=pool_size[layer + 1],
-                               strides=pool_size[layer + 1],
-                              data_format="channels_first"))  # Max pooling
-        model.add(Dropout(0.1))
-
-        # Reshaping input for recurrent layer
-    # (frequency, time, channels) --> (time, frequency, channel)
-    model.add(Permute((time_axis, frequency_axis, channel_axis)))
-    resize_shape = model.output_shape[2] * model.output_shape[3]
-    model.add(Reshape((model.output_shape[1], resize_shape)))
-
-    # recurrent layer
-    model.add(GRU(32, return_sequences=True))
-    model.add(GRU(32, return_sequences=False))
-    model.add(Dropout(0.3))
-
-    # Output layer
-    model.add(Dense(nb_classes))
-    model.add(Activation("relu"))
-    return model
-
-#---------------------------------------------------------------------------------
 """
 Input parameters :
 dataset_folder = path to where dataset resides
@@ -373,13 +319,16 @@ if __name__ == '__main__':
     opt = keras.optimizers.Adam(learning_rate=0.001)
     model.compile(loss='mean_squared_error', optimizer = opt) 
 
+    #create directory to save weights and logs
+    if not os.exists(args.outDir + 'logs'):
+        os.makedirs(args.outDir + 'logs')
+    if not os.exists(args.outDir + 'weights'):
+        os.makedirs(args.outDir + 'weights')
+    
     #Callbacks
-    checkpointer = ModelCheckpoint(filepath='weights.best.' + str(args.name) + '.hdf5', 
-                                   verbose=1, save_best_only=True)
+    checkpointer = ModelCheckpoint(filepath= args.outDir + 'weights/' + 'weights.best.' + str(args.name) + '.hdf5', verbose=1, save_best_only=True)
 
-    if not os.path.exists('logs'):
-        os.makedirs('logs')
-    logdir = "logs/" + str(args.name)# + datetime.now().strftime("%Y%m%d-%H%M%S")
+    logdir = args.outDir + 'logs/' + str(args.name)# + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard = TensorBoard(log_dir=logdir,profile_batch=0,update_freq='batch')
     
     # Train model on dataset
