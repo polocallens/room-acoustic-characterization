@@ -308,9 +308,9 @@ if __name__ == '__main__':
     model.compile(loss='mean_squared_error', optimizer = opt) 
 
     #create directory to save weights and logs
-    if not os.exists(args.outDir + 'logs'):
+    if not os.path.exists(args.outDir + 'logs'):
         os.makedirs(args.outDir + 'logs')
-    if not os.exists(args.outDir + 'weights'):
+    if not os.path.exists(args.outDir + 'weights'):
         os.makedirs(args.outDir + 'weights')
     
     #Callbacks
