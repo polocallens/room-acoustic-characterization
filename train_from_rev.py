@@ -134,6 +134,7 @@ def parse_args():
         help = 'gpu 0 or gpu 1 ')
     return parser.parse_args()
 
+
 #---------------------------------------------------------------------------------
 def _get_available_gpus():
     """Get a list of available gpu devices (formatted as strings).
