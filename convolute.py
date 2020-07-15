@@ -37,6 +37,12 @@ def parse_args():
         help='Audio length in seconds'
     )
     
+    parser.add_argument(
+        '-outFormat', '--outFormat',
+        type=str, default='mfcc', 
+        help='Output format --> mfcc or wavfile '
+    )
+    
     parser.add_argument('--norm', dest='norm', action='store_true')
     parser.set_defaults(norm=False)
     
@@ -91,5 +97,10 @@ if __name__ == '__main__':
             music_rev = music_rev[:len(music_sig)]
             
             music_rev = music_rev / np.max(np.abs(music_rev))
-
-            wavfile.write(outDir + rir_name + '/' + music_name + '.wav', m_sr, music_rev)
+            
+            if args.outFormat == 'mfcc':
+                with open(outDir + rir_name + '/' + audio_name + '.pkl','wb') as pkl_file:
+                    pickle.dump(mfcc,pkl_file)
+                    
+            elif args.outFormat == 'wavfile'
+                wavfile.write(outDir + rir_name + '/' + music_name + '.wav', m_sr, music_rev)
