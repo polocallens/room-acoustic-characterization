@@ -238,21 +238,13 @@ class DataGenerator(Sequence):
             
             room_name = os.path.split(os.path.dirname(path))[1]
             
-            if self.y_param == 'all':
-                for j,param in enumerate(self.params):
-                    with open(self.y_dir + param + '/' + room_name + '.pkl', "rb") as f:
-                        buffer = np.concatenate(buffer, pickle.load(f))
-                    f.close()
-                y[i] = buffer
+            with open(self.y_dir + self.y_param + '/' + room_name + '.pkl', "rb") as f:
+                y[i] = pickle.load(f)
+            f.close()
                 
-            else:
-                with open(self.y_dir + self.y_param + '/' + room_name + '.pkl', "rb") as f:
-                    y[i] = pickle.load(f)
-                f.close()
-                
-                if(np.isnan(np.sum(y[i]))):
-                    print(f'\nWARNING : Nan value found in {index}')
-                    #if i==1: print(f'\ny value = {y[i]}\n')
+            if(np.isnan(np.sum(y[i]))):
+                print(f'\nWARNING : Nan value found in {index}')
+                #if i==1: print(f'\ny value = {y[i]}\n')
         return X, y
     
     

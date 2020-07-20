@@ -46,8 +46,6 @@ def t60_impulse(raw_signal,fs, bands, rt='t30'):  # pylint: disable=too-many-loc
         init = 0.0
         end = -10.0
         factor = 6.0
-
-    
     
     if bands is not None:
         t60 = np.zeros(bands.size)
@@ -130,36 +128,6 @@ def t60_impulse_avg(raw_signal,fs, rt='t30'):  # pylint: disable=too-many-locals
     return t60
 #------------------------------------------------------------------------------------------
 
-
-"""def rir2t60(rir_dir, output_folder):
-    t60s = []
-    rir_list = sorted(glob.glob(rir_dir + '*.wav'))
-    try:
-        os.mkdir(output_folder + "t60")
-    except:
-        print("t60 folder already exist")
-        
-    #Process all RIRs and save outputs as pkl
-    for rir_file in tqdm(rir_list):
-        try:
-            rir_sr, rir = wavfile.read(rir_file)
-        except:
-            print("Error encountered while parsing file: ",rir_file)
-            return None 
-
-        bands = acoustics.bands.third(500,6000)
-
-        t60 = t60_impulse(rir, rir_sr,  bands, rt='t30')
-        t60s.append(t60)
-        filename = os.path.splitext(os.path.basename(rir_file))[0]
-        with open(output_folder + "t60/" + filename + ".pkl", "wb") as f:
-            pickle.dump(t60, f)
-        f.close()
-    return t60s
-"""
-#------------------------------------------------------------------------------------------
-
-
 def clarity_avg(time, signal, fs):
     """
     Clarity :math:`C_i` determined from an impulse response.
@@ -205,47 +173,8 @@ def rir2clarity(rir_dir, output_folder,time):
     return(clarities)
 
 #------------------------------------------------------------------------------------------
-"""def rir2drr(rir_dir, output_folder):
-    drrs = []
-    rir_list = sorted(glob.glob(rir_dir + '*.wav'))
-    a=1
-    try:
-        os.mkdir(output_folder + "drr")
-    except:
-        print("drr folder already exist")
-        
-    #Process all RIRs and save outputs as pkl
-    for rir_file in tqdm(rir_list):
-        try:
-            rir_sr, rir =  wavfile.read(rir_file)
-        except:
-            print("Error encountered while parsing file: ",rir_file)
-            return None 
 
-        onset = np.argmax(np.abs(rir))
-        direct_range = int(5**-3 * rir_sr)
-        
-        # RIR decomposition
-        direct = rir[:onset + direct_range]
-        reverb = rir[onset + direct_range + 1:]
-        epsilon = 1e-12
-
-
-        # DDR calculation
-
-        DRR = (np.sum(np.square(direct)) + epsilon) / (np.sum(np.square(reverb)) + epsilon)
-        #print(f'drr before log = {DRR}')
-        DRR = 10*np.log10(DRR)
-        drrs.append(DRR)
-        filename = os.path.splitext(os.path.basename(rir_file))[0]
-        with open(output_folder + "drr/" + filename + ".pkl", "wb") as f:
-            pickle.dump(DRR, f)
-        f.close()
-    return drrs
-"""
-#------------------------------------------------------------------------------------------
-
-def drr(signal, fs, bands=None, debug = False):
+def drr_impulse(signal, fs, bands=None, debug = False):
     """
     Clarity :math:`C_i` determined from an impulse response.
     :param time: Time in miliseconds (e.g.: 50, 80).
@@ -335,7 +264,7 @@ def rir2drr(rir_dir, output_folder = None, bands=None):
             print("Error encountered while parsing file: ",rir_file)
             return None 
         
-        drrs[i] = drr(rir, rir_sr, bands)
+        drrs[i] = drr_impulse(rir, rir_sr, bands)
         
         if np.isnan(drrs[i]):
             print(f'isnan : {rir_file}\n')
@@ -386,29 +315,11 @@ def rir2t60(rir_dir, output_folder,bands = acoustics.bands.third(500,6000)):
     return t60s
 
 #------------------------------------------------------------------------------------------
-"""def rir2t60(rir_dir, output_folder):
-    t60s = []
-    rir_list = sorted(glob.glob(rir_dir + '*.wav'))
-    try:
-        os.mkdir(output_folder + "t60")
-    except:
-        print("t60 folder already exist")
-        
-    #Process all RIRs and save outputs as pkl
-    for rir_file in tqdm(rir_list):
-        try:
-            rir_sr, rir = wavfile.read(rir_file)
-        except:
-            print("Error encountered while parsing file: ",rir_file)
-            return None 
+#------------------------------------------------------------------------------------------
+#-------------------------Functions lower level for update 16.7----------------------------
+#------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------
 
-        bands = acoustics.bands.third(500,6000)
 
-        t60 = t60_impulse(rir, rir_sr,  bands, rt='t30')
-        t60s.append(t60)
-        filename = os.path.splitext(os.path.basename(rir_file))[0]
-        with open(output_folder + "t60/" + filename + ".pkl", "wb") as f:
-            pickle.dump(t60, f)
-        f.close()
-    return t60s
-"""
+#------------------------------------------------------------------------------------------
+

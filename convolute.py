@@ -6,6 +6,8 @@ import os
 from argparse import ArgumentParser
 import numpy as np
 from scipy.signal import fftconvolve
+import pickle
+from utils.mfcc import compute_norm_mfcc_3
 
 # Custom imports
 from utils.normalize import *
@@ -99,8 +101,9 @@ if __name__ == '__main__':
             music_rev = music_rev / np.max(np.abs(music_rev))
             
             if args.outFormat == 'mfcc':
-                with open(outDir + rir_name + '/' + audio_name + '.pkl','wb') as pkl_file:
+                mfcc = compute_norm_mfcc_3(music_rev,m_sr)
+                with open(outDir + rir_name + '/' + music_name + '.pkl','wb') as pkl_file:
                     pickle.dump(mfcc,pkl_file)
                     
-            elif args.outFormat == 'wavfile'
+            elif args.outFormat == 'wavfile':
                 wavfile.write(outDir + rir_name + '/' + music_name + '.wav', m_sr, music_rev)
