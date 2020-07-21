@@ -7,7 +7,7 @@ You will need :
 - signal directory --> Music or speech
 
 ### Convolve music dataset with RIRs
-If -norm True is passed, both RIR and audio files will all be normed
+If -norm is passed, both RIR and audio files will all be normed
 
 ```console
 python convolute.py -audioDir YOUR_AUDIO_DIR/ -rirDir YOUR_RIR_DIR/ -outDir WHERE_YOU_WANT_YOUR_CONVOLVED_MUSIC -trim DESIRED_AUDIO_LEN_IN_S
