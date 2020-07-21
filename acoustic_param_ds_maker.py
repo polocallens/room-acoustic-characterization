@@ -90,7 +90,7 @@ if __name__ == '__main__':
     else:
         params = args.params"""
     
-    if 'all' in args.param:
+    if 'all' in args.params:
         params = ['t60','c50','c80','drr','all']
     else :
         params = args.params
