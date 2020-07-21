@@ -89,14 +89,20 @@ if __name__ == '__main__':
         
     else:
         params = args.params"""
+    
+    if 'all' in args.param:
+        params = ['t60','c50','c80','drr','all']
+    else :
+        params = args.params
 
     #Create param directories
-    for param in args.params:
+    for param in params:
         if not os.path.exists(args.outDir + param):
             os.mkdir(args.outDir + param)
     
     bands = np.array(args.bands)
     #print(f'bands = {bands}')
+    
     
     for i,rir_file in enumerate(tqdm(rir_list)):
         #Read rir file
@@ -107,21 +113,21 @@ if __name__ == '__main__':
             sys.exit(1)
     
         #compute parameters
-        if 't60' in args.params:
+        if 't60' in params:
             t60 = t60_impulse(rir,rir_sr, bands,rt='t30')
-        if 'c50' in args.params:
+        if 'c50' in params:
             c50 = acoustics.room.clarity(50, rir, rir_sr, bands)
-        if 'c80' in args.params:
+        if 'c80' in params:
             c80 = acoustics.room.clarity(80, rir, rir_sr, bands)
-        if 'drr' in args.params:
+        if 'drr' in params:
             drr = drr_impulse(rir, rir_sr, bands)
         
-        if 'all' in args.params:
+        if 'all' in params:
             all = np.hstack((t60,c50,c80,drr))
             
         filename = os.path.splitext(os.path.basename(rir_file))[0]
 
-        for param in args.params:
+        for param in params:
             with open(args.outDir + param + "/" + filename + ".pkl", "wb") as f:
                 pickle.dump(eval(param), f)
             f.close()
