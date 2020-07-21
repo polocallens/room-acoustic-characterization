@@ -46,7 +46,7 @@ def parse_args():
     )
     
     parser.add_argument('--norm', dest='norm', action='store_true')
-    parser.set_defaults(norm=False)
+    parser.set_defaults(norm=True)
     
     return parser.parse_args()
     
