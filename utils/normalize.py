@@ -3,7 +3,7 @@ import tqdm
 import os
 from subprocess import call
 
-def resample_audio_dir(file_dir, sampling_rate = 16000, channels = 1, trim = None):
+def resample_audio_dir(file_dir, sampling_rate = 16000, channels = 1, trim = None, trim_silence = False):
     
     print(f'------- Normalizing directory : {file_dir} -------')
     file_list = sorted(glob.glob(file_dir + '*'))

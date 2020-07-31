@@ -19,10 +19,10 @@ def feature_normalize(dataset):
     return (dataset - np.mean(dataset, axis=0)) / np.abs(dataset).max(axis=0)
 
 #------------------------------------------------------------------------------------------
-def compute_norm_mfcc(signal,fs,n_bands,hop_len,n_fft,window_size):
+def compute_norm_mfcc(signal,fs):
     signal = feature_normalize(signal)
-    mfcc = librosa.feature.mfcc(y=signal, sr=fs, n_mfcc= n_bands,hop_length=hop_len, n_fft=n_fft)
-    mfcc = librosa.util.fix_length(mfcc, window_size, axis=1, mode='wrap') #Reshape to windom size
+    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=40, hop_length=int(0.010*fs), n_fft=int(0.025*fs))
+    mfcc = librosa.util.fix_length(mfcc, 1500, axis=1, mode='wrap') #Reshape to windom size
     mfcc = librosa.util.normalize(mfcc, axis=1)
     return mfcc
 

@@ -30,7 +30,7 @@ def parse_args():
     
     parser.add_argument(
         '-bands', '--bands',
-        nargs = '+', default = [125.,  250.,  500., 1000., 2000., 4000.],
+        nargs = '+', type = float, default = [125.,  250.,  500., 1000., 2000., 4000.],
         help='center bands for param computations'
     )
     
@@ -101,6 +101,7 @@ if __name__ == '__main__':
             os.mkdir(args.outDir + param)
     
     bands = np.array(args.bands)
+    print(args.bands)
     #print(f'bands = {bands}')
     
     
@@ -124,6 +125,7 @@ if __name__ == '__main__':
         
         if 'all' in params:
             all = np.hstack((t60,c50,c80,drr))
+            
             
         filename = os.path.splitext(os.path.basename(rir_file))[0]
 

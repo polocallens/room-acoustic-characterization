@@ -54,7 +54,7 @@ def parse_args():
     
     parser.add_argument(
         '-outDir', '--outDir',
-        type=str, default='logs',
+        type=str, default='trainings/',
         help='output directory where to save logs and weights'
     )
     
@@ -78,7 +78,7 @@ def parse_args():
     
     parser.add_argument(
         '-window_size', '--window_size',
-        type=int, default=251,
+        type=int, default=1500,
         help='Number of timesteps.'
     )
     
@@ -102,7 +102,7 @@ def parse_args():
     
     parser.add_argument(
         '-output_size', '--output_size',
-        type=int, default=12,
+        type=int, default=6,
         help='output shapes [number of freq bands]'
     )
     
@@ -307,7 +307,10 @@ if __name__ == '__main__':
         os.makedirs(args.outDir + 'weights')
     
     #Callbacks
-    checkpointer = ModelCheckpoint(filepath= args.outDir + 'weights/' + 'weights.best.' + str(args.name) + '.hdf5', verbose=1, save_best_only=True)
+    checkpointer = ModelCheckpoint(filepath= args.outDir + 'weights/' + 'weights.best.' + str(args.name) + '.hdf5', 
+                                   verbose=1, save_best_only=True)
+    earlystopper = EarlyStopping(monitor='val_loss', min_delta=0,
+                                 patience=early_stop, verbose=0, mode='auto')
 
     logdir = args.outDir + 'logs/' + str(args.name)# + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard = TensorBoard(log_dir=logdir,profile_batch=0,update_freq='batch')
@@ -317,9 +320,9 @@ if __name__ == '__main__':
               validation_data=validation_generator,
               epochs = args.n_epochs,
               use_multiprocessing=False,
-              callbacks=[checkpointer,tensorboard],
+              callbacks=[checkpointer,tensorboard,earlystopper],
               workers=1)
 
 
-    evaluate_generator(generator, steps=None, callbacks=None, max_queue_size=10, workers=1, use_multiprocessing=False, verbose=0)
+    #evaluate_generator(generator, steps=None, callbacks=None, max_queue_size=10, workers=1, use_multiprocessing=False, verbose=0)
 
