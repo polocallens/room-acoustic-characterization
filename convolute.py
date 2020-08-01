@@ -79,14 +79,14 @@ if __name__ == '__main__':
         for rir_file in glob.glob(rirDir + '*'):
             rir_name = os.path.splitext(os.path.basename(rir_file))[0]
 
-            if os.path.exists(outDir + rir_name + '/' + music_name + '.wav'):
+            if os.path.exists(os.path.join(outDir, rir_name, music_name + '.wav')):
                 continue
                 
             rir_sr, rir_sig = wavfile.read(rir_file)
             
             
-            if not os.path.exists(outDir + rir_name):
-                os.mkdir(outDir+rir_name)
+            if not os.path.exists(os.path.join(outDir, rir_name)):
+                os.mkdir(os.path.join(outDir,rir_name))
             #print(f'rir : {rir_file}')
             
             rir_sig = (rir_sig / np.max(np.abs(rir_sig))).flatten()
@@ -100,8 +100,8 @@ if __name__ == '__main__':
             
             if args.outFormat == 'mfcc':
                 mfcc = compute_norm_mfcc(music_rev,m_sr)
-                with open(outDir + rir_name + '/' + music_name + '.pkl','wb') as pkl_file:
+                with open(os.path.join(outDir, rir_name, music_name + '.pkl'),'wb') as pkl_file:
                     pickle.dump(mfcc,pkl_file)
                     
             elif args.outFormat == 'wavfile':
-                wavfile.write(outDir + rir_name + '/' + music_name + '.wav', m_sr, music_rev)
+                wavfile.write(os.path.join(outDir, rir_name, music_name + '.wav'), m_sr, music_rev)

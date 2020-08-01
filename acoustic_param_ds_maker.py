@@ -97,8 +97,8 @@ if __name__ == '__main__':
 
     #Create param directories
     for param in params:
-        if not os.path.exists(args.outDir + param):
-            os.mkdir(args.outDir + param)
+        if not os.path.exists(os.path.join(args.outDir, param)):
+            os.mkdir(os.path.join(args.outDir,param))
     
     bands = np.array(args.bands)
     print(args.bands)
@@ -130,7 +130,7 @@ if __name__ == '__main__':
         filename = os.path.splitext(os.path.basename(rir_file))[0]
 
         for param in params:
-            with open(args.outDir + param + "/" + filename + ".pkl", "wb") as f:
+            with open(os.path.join(args.outDir, param, filename + ".pkl"), "wb") as f:
                 pickle.dump(eval(param), f)
             f.close()
         #debug

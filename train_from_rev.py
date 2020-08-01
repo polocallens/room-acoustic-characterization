@@ -79,19 +79,13 @@ def parse_args():
     parser.add_argument(
         '-window_size', '--window_size',
         type=int, default=1500,
-        help='Number of timesteps.'
+        help='mfcc window size'
     )
     
     parser.add_argument(
         '-mfcc_bands', '--mfcc_bands',
         type=int, default=40,
         help='Number of mfcc bands (along freq axis)'
-    )
-    
-    parser.add_argument(
-        '-mfcc_degree', '--mfcc_degree',
-        type=int, default=0,
-        help='Using additional delta mfcc layer (0,1 or 2).'
     )
     
     parser.add_argument(
@@ -154,7 +148,6 @@ def _get_available_gpus():
 Input parameters :
 dataset_folder = path to where dataset resides
 list_IDs = array of ids 
-mfcc_degree = 0->mfcc ; 1->mfcc+delta ; 2->mfcc+delta+deltadelta
 window_size = number of frames (cols)
 mfcc_bands = number of spectrogram frequency buckets (rows)
 output_size = number of frequency bands to predict
@@ -168,7 +161,7 @@ class DataGenerator(Sequence):
     'Generates data for Keras'
     def __init__(self, y_dir, ds_paths,
                  window_size, mfcc_bands,
-                 mfcc_degree, y_param,
+                 y_param,
                  n_channels,
                  output_size,
                  batch_size, 
@@ -255,7 +248,6 @@ if __name__ == '__main__':
     # Parameters
     params = {'window_size': args.window_size,
               'mfcc_bands': args.mfcc_bands,
-              'mfcc_degree': args.mfcc_degree,
               'y_param': str(args.y_param),
               'n_channels': args.n_channels,
               'batch_size': args.batch_size,
