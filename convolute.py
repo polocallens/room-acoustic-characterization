@@ -45,9 +45,6 @@ def parse_args():
         help='Output format --> mfcc or wavfile '
     )
     
-    parser.add_argument('--norm', dest='norm', action='store_true')
-    parser.set_defaults(norm=True)
-    
     return parser.parse_args()
     
 if __name__ == '__main__':
@@ -58,15 +55,10 @@ if __name__ == '__main__':
     rirDir = args.rirDir
     outDir = args.outDir
 
-
     #resample audio first 
-    
-    if args.norm :
-        print('---norm music+rir directories---')
-        audioDir = resample_audio_dir(audioDir,trim=args.trim)
-        rirDir = resample_audio_dir(rirDir)
-    else :
-        print("Skipping normalization, make sure you selected already normed samples")
+    print('--resampling music+rir directories---')
+    audioDir = resample_audio_dir(audioDir,trim=args.trim)
+    rirDir = resample_audio_dir(rirDir)
     
     if not os.path.exists(outDir):
         os.makedirs(outDir)
