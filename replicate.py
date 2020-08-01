@@ -103,7 +103,7 @@ def parse_args():
     )
     
     parser.add_argument('--plot', dest='plot', action='store_true')
-    parser.set_defaults(norm=False)
+    parser.set_defaults(plot=False)
     
     args = parser.parse_args()
     #check args 
@@ -195,18 +195,11 @@ if __name__ == '__main__':
     
     if os.path.exists(mfcc_dir):
         recompute_conv = input("mfcc directory already exists, do you want to recompute it? y or n : ")
-        if recompute_conv == 'y':
-            recompute_conv = True
-        elif recompute_conv == 'n':
-            recompute_conv = False
-        else:
-            print("answer is not y or n, recomputing mfccs...")
-            recompute_conv = True
     else:
         os.makedirs(mfcc_dir)
-        recompute_conv = True
+        recompute_conv = 'y'
  
-    if recompute_conv:
+    if recompute_conv == 'y':
         call('python convolute.py -audioDir ' + audio_test_dir + 
              ' -rirDir ' + rir_test_dir + 
              ' -outDir ' + mfcc_dir +
@@ -216,18 +209,11 @@ if __name__ == '__main__':
     #Compute and save true values
     if os.path.exists(true_values_dir):
         recompute_true_vals = input("true value directory already exists, do you want to recompute it? y or n : ")
-        if recompute_true_vals == 'y':
-            recompute_true_vals = True
-        elif recompute_true_vals == 'n':
-            recompute_true_vals = False
-        else:
-            print("answer is not y or n, recomputing true values...")
-            recompute_true_vals = True
     else:
         os.makedirs(true_values_dir)    
-        recompute_true_vals = True
+        recompute_true_vals = 'y'
 
-    if recompute_true_vals:
+    if recompute_true_vals == 'y':
         if args.nbBands == 6:
             call('python acoustic_param_ds_maker.py -rirDir ' + rir_normed_dir + 
                  ' -outDir ' + true_values_dir + 
@@ -257,8 +243,22 @@ if __name__ == '__main__':
     #Make predictions
     print("Making predictions")
     audio_list = [os.path.splitext(os.path.basename(file))[0]+'.pkl' for file in glob.glob(audio_test_dir+'*.wav')]
-    preds_df = predict(mfcc_dir,audio_list,true_values_dir,params)
     
+    pred_file = 'predictions.csv'
+    if os.path.exists(pred_file):
+        redo_preds = input('predictions.csv already exists, overwrite it? y or n : ')
+        if redo_preds == 'n':
+            sys.exit(1)
+    
+    preds_df = predict(mfcc_dir,audio_list,true_values_dir,params)
+    #save predictions
+    preds_df.to_csv(pred_file,index=True)
+
+    else:
+        print('must enter either y or n')
+        sys.exit(1)
+        
+   
     #Load true values
     target_df = pd.DataFrame(columns = next(os.walk(mfcc_dir))[1],
                      index=next(os.walk(true_values_dir))[1])
@@ -277,10 +277,13 @@ if __name__ == '__main__':
             
     #print error
     res_arr = np.empty(len(preds_df))
+    
 
     for i,col in enumerate(preds_df.columns):
         preds_arr = np.vstack(preds_df[str(col)].values)
-        target_arr = np.vstack(len(preds_arr)*[(target_df[str(col)].eval(args.param))])
+        target_arr = np.vstack(len(preds_arr)*[(target_df[str(col)].loc[args.param])])
+        print(f"preds_arr = {preds_arr}")
+        print(f"target = {target_arr}")
         res_arr[i] = mean_absolute_error(target_arr,preds_arr)
         
     print(f"mean error = {res_arr.mean()}")
