@@ -253,11 +253,6 @@ if __name__ == '__main__':
     preds_df = predict(mfcc_dir,audio_list,true_values_dir,params)
     #save predictions
     preds_df.to_csv(pred_file,index=True)
-
-    else:
-        print('must enter either y or n')
-        sys.exit(1)
-        
    
     #Load true values
     target_df = pd.DataFrame(columns = next(os.walk(mfcc_dir))[1],
@@ -282,8 +277,6 @@ if __name__ == '__main__':
     for i,col in enumerate(preds_df.columns):
         preds_arr = np.vstack(preds_df[str(col)].values)
         target_arr = np.vstack(len(preds_arr)*[(target_df[str(col)].loc[args.param])])
-        print(f"preds_arr = {preds_arr}")
-        print(f"target = {target_arr}")
         res_arr[i] = mean_absolute_error(target_arr,preds_arr)
         
     print(f"mean error = {res_arr.mean()}")
