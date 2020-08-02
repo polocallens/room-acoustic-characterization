@@ -68,14 +68,17 @@ python convolute.py [-h] -audioDir AUDIODIR -rirDir RIRDIR -outDir OUTDIR -trim
                TRIM [-outFormat OUTFORMAT]
 ```
 
-|Short        |Long         |Default|Description                       |
-|-------------|-------------|-------|----------------------------------|
-|`-h`         |`--help`     |       |show this help message and exit   |
-|`-audioDir`  |`--audioDir` |`None` |Music directory.                  |
-|`-rirDir`    |`--rirDir`   |`None` |rir directory                     |
-|`-outDir`    |`--outDir`   |`None` |output directory                  |
-|`-trim`      |`--trim`     |`None` |Audio length in seconds           |
-|`-outFormat` |`--outFormat`|`mfcc` |Output format --> mfcc or wavfile |
+|Short       |Long         |Default|Description                                                                          |
+|------------|-------------|-------|-------------------------------------------------------------------------------------|
+|`-h`        |`--help`     |       |show this help message and exit                                                      |
+|`-audioDir` |`--audioDir` |`None` |Music directory.                                                                     |
+|`-rirDir`   |`--rirDir`   |`None` |rir directory                                                                        |
+|`-outDir`   |`--outDir`   |`None` |output directory                                                                     |
+|`-trim`     |`--trim`     |`None` |Audio length in seconds                                                              |
+|`-outFormat`|`--outFormat`|`mfcc` |Output format --> mfcc or wavfile                                                    |
+|`-noiseSNR` |`--noiseSNR` |`None` |Add pink noise to rev signal at the specified SNR                                    |
+|`-noiseType`|`--noiseType`|`white`|Type of noise --> white or real. if real, please specify file with noiseFile argument|
+|`-noiseFile`|`--noiseFile`|`None` |Path to real noise file                                                              |
 
 New audio and RIR directories will be created containing the re-sampled and trimmed wav files. 
 Please use the new RIR directory to compute the true acoustic values in the following command. 
