@@ -8,7 +8,7 @@ def resample_file(file,sampling_rate = 16000, channels = 1):
     call('sox -G ' + file + ' -r '+str(sampling_rate)+' -e float -c '+str(channels)+' ' + out_file + ' norm',shell=True)
     return out_file
 
-
+#---------------------------------------------------------------------------------
 def resample_audio_dir(file_dir, sampling_rate = 16000, channels = 1, trim = None, trim_silence = False):
     
     print(f'------- Normalizing directory : {file_dir} -------')
@@ -40,8 +40,7 @@ def resample_audio_dir(file_dir, sampling_rate = 16000, channels = 1, trim = Non
         
     return out_dir + '/'
 
-
-
+#---------------------------------------------------------------------------------
 def chunk_audio_files(music_dir,chunk_duration_s):
     print(f'------- Chunk audio directory : {music_dir} -------')
     music_list = sorted(glob.glob(music_dir + '*'))
@@ -54,3 +53,17 @@ def chunk_audio_files(music_dir,chunk_duration_s):
     for file in tqdm(music_list):
         filename = os.path.split(file)[1]
         call('sox ' + file + ' ' + out_dir + '/' + filename + ' trim 0 ' + str(chunk_duration_s),shell=True)
+    
+#---------------------------------------------------------------------------------
+def trim_silence_dir(dir):
+    outdir = dir.strip("/") + '_trimmed'
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
+        
+    file_list = sorted(glob.glob(os.path.join(out_dir,'*.wav')))
+    
+    for file in file_list:
+        outfile = os.path.join(out_dir, os.path.basename(file))
+        call('sox', file, outfile, 'silence 1 0.01 0.05%')
+    
+    return out_dir

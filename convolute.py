@@ -7,6 +7,7 @@ from argparse import ArgumentParser
 import numpy as np
 from scipy.signal import fftconvolve
 import pickle
+import shutil
 
 # Custom imports
 from utils.resample import *
@@ -75,8 +76,13 @@ if __name__ == '__main__':
     outDir = args.outDir
 
     #resample audio first 
-    print('--resampling music+rir directories---')
+    print('--resampling and trimming music--')
     audioDir = resample_audio_dir(audioDir,trim=args.trim)
+    
+    print('trimming start of rir directory')
+    rirDir = trim_silence_dir(rirDir)
+    
+    print('resampling RIR directory')
     rirDir = resample_audio_dir(rirDir)
     
     if not os.path.exists(outDir):
