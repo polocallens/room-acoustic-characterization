@@ -6,9 +6,7 @@
 * [Screenshots](#screenshots)
 * [Technologies](#technologies)
 * [Setup](#setup)
-* [Features](#features)
-* [Status](#status)
-* [Inspiration](#inspiration)
+* [Usage](#usage)
 * [Contact](#contact)
 
 ## General info
@@ -133,30 +131,28 @@ python train_from_rev.py [-h] -xDir XDIR -yDir YDIR [-outDir OUTDIR] -name NAME
 |`-gpu`         |`--gpu`          |`1`         |gpu 0 or gpu 1                                          |
 
 ### Testing
+A modulable testing Notebook is available in the Notebook directory.
 
+### Replicate results
+Another way of testing and reproducing the results with speech and t60 predictions. Run :
+```console
+python replicate.py
+```
 
-### Reproduction
+|Short           |Long             |Default                                                    |Description                                             |
+|----------------|-----------------|-----------------------------------------------------------|--------------------------------------------------------|
+|`-h`            |`--help`         |                                                           |show this help message and exit                         |
+|`-audioDir`     |`--audioDir`     |`datasets/final_ds/Test/speech/`                           |Audio directory.                                        |
+|`-rirDir`       |`--rirDir`       |`datasets/final_ds/Test/RIR_final/`                        |rir directory                                           |
+|`-gpu`          |`--gpu`          |`0`                                                        |GPU used for computation                                |
+|`-audioDuration`|`--audioDuration`|`15`                                                       |Length of audio signal to use in seconds                |
+|`-nbBands`      |`--nbBands`      |`6`                                                        |number of output bands, 6 or 12 (6 for joint estimation)|
+|`-param`        |`--param`        |`t60`                                                      |Parameter to predict among t60,c50,c80,drr,all          |
+|`-model`        |`--model`        |`CRNN2D`                                                   |Network to use for inference                            |
+|`-loadWeights`  |`--loadWeights`  |`trainings/weights/weights.best.t60_speech_RCNN_final.hdf5`|If you want to specify which weights to use             |
+|`-plot`         |`--plot`         |`None`                                                     |outputs plot predictions vs truth                       |
 
-
-
-
-## Features
-
-* Awesome feature 1
-* Awesome feature 2
-* Awesome feature 3
-
-To-do list:
-* Wow improvement to be done 1
-* Wow improvement to be done 2
-
-## Status
-Project is: _in progress_,
-
-## Inspiration
-Add here credits. 
-Project inspired by..., based on...
 
 ## Contact
-Created by [@polocallens](contact@paulcallens.com) - feel free to contact me!
+Created by [@polocallens](github.com/polocallens) - feel free to contact me!
 [Paul Callens](mailto:contact@paulcallens.com?subject=[GitHub]%20Room%20characterization%20project)
