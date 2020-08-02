@@ -124,7 +124,7 @@ if __name__ == '__main__':
             drr = drr_impulse(rir, rir_sr, bands)
         
         if 'all' in params:
-            all = np.hstack((t60,c50,c80,drr))
+            all = np.hstack((t60.mean(),c50.mean(),c80.mean(),drr.mean()))
             
             
         filename = os.path.splitext(os.path.basename(rir_file))[0]
