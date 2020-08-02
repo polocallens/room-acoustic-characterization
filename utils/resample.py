@@ -3,6 +3,12 @@ import tqdm
 import os
 from subprocess import call
 
+def resample_file(file,sampling_rate = 16000, channels = 1):
+    out_file = os.path.splitext(file)[0] + '_sr' + str(sampling_rate) + '_c_' + str(channels) + '.wav'
+    call('sox -G ' + file + ' -r '+str(sampling_rate)+' -e float -c '+str(channels)+' ' + out_file + ' norm',shell=True)
+    return out_file
+
+
 def resample_audio_dir(file_dir, sampling_rate = 16000, channels = 1, trim = None, trim_silence = False):
     
     print(f'------- Normalizing directory : {file_dir} -------')

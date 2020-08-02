@@ -7,10 +7,11 @@ from argparse import ArgumentParser
 import numpy as np
 from scipy.signal import fftconvolve
 import pickle
-from utils.mfcc import compute_norm_mfcc
 
 # Custom imports
-from utils.normalize import *
+from utils.resample import *
+from utils.mfcc import compute_norm_mfcc
+from utils.noise import get_white_noise, get_noise_from_sound
 
 def parse_args():
     parser = ArgumentParser(description='MakeConvDataset')
@@ -43,6 +44,24 @@ def parse_args():
         '-outFormat', '--outFormat',
         type=str, default='mfcc', 
         help='Output format --> mfcc or wavfile '
+    )
+    
+    parser.add_argument(
+        '-noiseSNR', '--noiseSNR',
+        type=int, default=None, 
+        help='Add pink noise to rev signal at the specified SNR'
+    )
+    
+    parser.add_argument(
+        '-noiseType', '--noiseType',
+        type=str, default='white', 
+        help='Type of noise --> white or real. if real, please specify file with noiseFile argument'
+    )
+    
+    parser.add_argument(
+        '-noiseFile', '--noiseFile',
+        type=str, default=None, 
+        help='Path to real noise file'
     )
     
     return parser.parse_args()
@@ -81,22 +100,47 @@ if __name__ == '__main__':
 
             if os.path.exists(os.path.join(outDir, rir_name, music_name + '.wav')):
                 continue
-                
+            
+            #Read rir
             rir_sr, rir_sig = wavfile.read(rir_file)
             
-            
+            #Make RIR directory
             if not os.path.exists(os.path.join(outDir, rir_name)):
                 os.mkdir(os.path.join(outDir,rir_name))
-            #print(f'rir : {rir_file}')
-            
+                    
             rir_sig = (rir_sig / np.max(np.abs(rir_sig))).flatten()
                         
             music_rev = fftconvolve(music_sig, rir_sig, mode="full")
-            #music_rev = music_rev[:len(music_sig)]
             
-            #music_rev = np.pad(music_rev, m_sr * args.trim, mode='wrap')
-            #print(f'sr ={m_sr}, trim = {args.trim}, len = {music_rev.shape}')
+            #Normalize reverberant signal
             music_rev = music_rev / np.max(np.abs(music_rev))
+            
+            #Add noise
+            if args.noiseSNR is not None:
+                if args.noiseType == 'white':
+                    noise = get_white_noise(music_rev,args.noiseSNR)
+                elif args.noiseType == 'real':
+                    if noiseFile is None:
+                        print("Please specify noiseFile argument")
+                        sys.exit(1)
+                    noiseFile = resample_file(args.noiseFile)
+                    noise_sr, real_noise = wavfile.read(noiseFile)
+                    
+                    #if noise is longer than reverberant signal, cut its tail
+                    #in the contrary, repeats until music and noise sizes are equal
+                    real_noise = np.resize(real_noise,music_rev.shape) 
+                    
+                    #normalize
+                    real_noise = real_noise / np.max(np.abs(real_noise))
+                    
+                    noise = get_noise_from_sound(music_rev,real_noise,args.noiseSNR)
+                else:
+                    print("please specify noiseType")
+                    sys.exit(1)
+                    
+                music_rev = music_rev + noise
+                music_rev = music_rev / np.max(np.abs(music_rev))
+                
             
             if args.outFormat == 'mfcc':
                 mfcc = compute_norm_mfcc(music_rev,m_sr)
