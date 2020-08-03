@@ -146,7 +146,7 @@ def predict(mfcc_dir,audio_list,true_ac_dir,params):
             
     return df
 #---------------------------------------------------------------------------------
-def plot_room_pred(room_name, preds_df, target_df, bands, param):
+def plot_room_pred(room_name, preds_df, target_df, bands, param,saveplots=True):
     track_names = []
     
     NUM_COLORS = preds_df.shape[0]
@@ -168,6 +168,11 @@ def plot_room_pred(room_name, preds_df, target_df, bands, param):
         
     plt.plot(bands,target_df.loc[param,room_name], color='red', linewidth = 5)
     #plt.legend((track_names))
+    if (saveplots):
+        if not os.path.exists('plots'):
+            os.makedirs('plots')
+        plt.savefig('plots/'+room_name+'.png')
+        
     plt.show()
 #---------------------------------------------------------------------------------
 
