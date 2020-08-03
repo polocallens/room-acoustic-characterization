@@ -79,11 +79,11 @@ if __name__ == '__main__':
     print('--resampling and trimming music--')
     audioDir = resample_audio_dir(audioDir,trim=args.trim)
     
-    print('trimming start of rir directory')
-    rirDir = trim_silence_dir(rirDir)
-    
     print('resampling RIR directory')
     rirDir = resample_audio_dir(rirDir)
+    
+    print('trimming start of rir directory')
+    rirDir = trim_silence_dir(rirDir)
     
     if not os.path.exists(outDir):
         os.makedirs(outDir)
