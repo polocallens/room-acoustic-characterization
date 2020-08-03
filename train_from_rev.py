@@ -11,7 +11,7 @@ import pickle
 
 from keras.optimizers import Adam
 from keras.utils import np_utils
-from keras.callbacks import ModelCheckpoint 
+from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras.models import load_model
 from sklearn import metrics 
 from sklearn.model_selection import train_test_split 
@@ -33,6 +33,10 @@ from argparse import ArgumentParser
 
 # Custom imports
 from utils.models import *
+
+#ignore warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 
 #---------------------------------------------------------------------------------
 # Parameters
@@ -289,7 +293,7 @@ if __name__ == '__main__':
         model.load_weights(args.load_weights)
 
     #Setup optimizer
-    opt = keras.optimizers.Adam(learning_rate=0.001)
+    opt = tf.keras.optimizers.Adam(learning_rate=0.001)
     model.compile(loss='mean_squared_error', optimizer = opt) 
 
     #create directory to save weights and logs
@@ -302,7 +306,7 @@ if __name__ == '__main__':
     checkpointer = ModelCheckpoint(filepath= args.outDir + 'weights/' + 'weights.best.' + str(args.name) + '.hdf5', 
                                    verbose=1, save_best_only=True)
     earlystopper = EarlyStopping(monitor='val_loss', min_delta=0,
-                                 patience=early_stop, verbose=0, mode='auto')
+                                 patience=50, verbose=0, mode='auto')
 
     logdir = args.outDir + 'logs/' + str(args.name)# + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard = TensorBoard(log_dir=logdir,profile_batch=0,update_freq='batch')
