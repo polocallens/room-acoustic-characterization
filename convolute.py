@@ -65,6 +65,12 @@ def parse_args():
         help='Path to real noise file'
     )
     
+    parser.add_argument('--no-rir-resampling', dest='rir_resampling', action='store_false')
+    parser.set_defaults(rir_resampling=True)
+    
+    parser.add_argument('--no-audio-resampling', dest='audio_resampling', action='store_false')
+    parser.set_defaults(audio_resampling=True)
+    
     return parser.parse_args()
     
 if __name__ == '__main__':
@@ -76,20 +82,24 @@ if __name__ == '__main__':
     outDir = args.outDir
 
     #resample audio first 
-    print('--resampling and trimming music--')
-    audioDir = resample_audio_dir(audioDir,trim=args.trim)
+    if args.audio_resampling:
+        print('--resampling and trimming music--')
+        audioDir = resample_audio_dir(audioDir,trim=args.trim)
     
-    print('resampling RIR directory')
-    rirDir = resample_audio_dir(rirDir)
+    if (args.rir_resampling):
+        print('resampling RIR directory')
+        rirDir = resample_audio_dir(rirDir)
     
-    print('trimming start of rir directory')
-    rirDir = trim_silence_dir(rirDir)
+        print('trimming start of rir directory')
+        rirDir = trim_silence_dir(rirDir)
+    else :
+        print('skipping rir resampling')
     
     if not os.path.exists(outDir):
         os.makedirs(outDir)
 
     print('---Convolving...---')
-    for music_file in tqdm.tqdm(glob.glob(audioDir + '*')):
+    for music_file in tqdm.tqdm(glob.glob(os.path.join(audioDir,'*.wav'))):
 
         m_sr, music_sig = wavfile.read(music_file)
         music_sig = (music_sig / np.max(np.abs(music_sig))).flatten()
@@ -101,7 +111,7 @@ if __name__ == '__main__':
 
         #print(f'zik : {music_name}')
 
-        for rir_file in glob.glob(rirDir + '*'):
+        for rir_file in glob.glob(os.path.join(rirDir,'*.wav')):
             rir_name = os.path.splitext(os.path.basename(rir_file))[0]
 
             if os.path.exists(os.path.join(outDir, rir_name, music_name + '.wav')):

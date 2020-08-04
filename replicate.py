@@ -92,13 +92,13 @@ def parse_args():
     
     parser.add_argument(
         '-model', '--model',
-        type=str, default='CRNN2D', 
+        type=str, default='CRNN2D_2', 
         help='Network to use for inference '
     )
     
     parser.add_argument(
         '-loadWeights', '--loadWeights',
-        type=str, default='trainings/weights/weights.best.t60_speech_RCNN_final.hdf5', 
+        type=str, default='thesis_trainings/weights/weights.best.t60_speech_0db.hdf5', 
         help='If you want to specify which weights to use'
     )
     

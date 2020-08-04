@@ -149,7 +149,7 @@ def clarity_avg(time, signal, fs):
 def rir2clarity(rir_dir, output_folder,time):
     #Process all RIRs and save outputs as pkl
     clarities = []
-    rir_list = sorted(glob.glob(rir_dir + '*.wav'))
+    rir_list = sorted(glob.glob(os.path.join(rir_dir, '*.wav')))
     try:
         os.mkdir(output_folder + "c" + str(time))
     except:
@@ -242,7 +242,7 @@ def drr_impulse(signal, fs, bands=None, debug = False):
 #------------------------------------------------------------------------------------------
 def rir2drr(rir_dir, output_folder = None, bands=None):
     
-    rir_list = sorted(glob.glob(rir_dir + '*.wav'))
+    rir_list = sorted(glob.glob(os.path.join(rir_dir, '*.wav')))
     
     if output_folder is not None:
         try:
@@ -284,7 +284,7 @@ def rir2drr(rir_dir, output_folder = None, bands=None):
 #------------------------------------------------------------------------------------------
 def rir2t60(rir_dir, output_folder,bands = acoustics.bands.third(500,6000)):
     #t60s = []
-    rir_list = sorted(glob.glob(rir_dir + '*.wav'))
+    rir_list = sorted(glob.glob(os.path.join(rir_dir,'*.wav')))
     try:
         os.mkdir(output_folder + "t60")
     except:

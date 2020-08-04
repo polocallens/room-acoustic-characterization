@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     #V2
     
-    rir_list = sorted(glob.glob(args.rirDir + '*.wav'))
+    rir_list = sorted(glob.glob(os.path.join(args.rirDir, '*.wav')))
     
     #declare array for all gathered params
     """if 'all' in arg.params:

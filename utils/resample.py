@@ -43,7 +43,7 @@ def resample_audio_dir(file_dir, sampling_rate = 16000, channels = 1, trim = Non
 #---------------------------------------------------------------------------------
 def chunk_audio_files(music_dir,chunk_duration_s):
     print(f'------- Chunk audio directory : {music_dir} -------')
-    music_list = sorted(glob.glob(music_dir + '*'))
+    music_list = sorted(glob.glob(os.path.join(music_dir, '*')))
     
     out_dir = music_dir.strip("/") + '_'+ str(chunk_duration_s) + 's/'
     
