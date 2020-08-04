@@ -23,7 +23,9 @@ A simple illustration of that is when you hear someone on the phone and he is in
 This repository contains machine learning based methods to teach such faculties to a portable loudspeaker equipped with a microphone.
 
 
-## Screenshots
+## Method
+![Example screenshot](figs/methodology.png)
+
 ![Example screenshot](./rt60pred.png)
 
 ## Technologies
