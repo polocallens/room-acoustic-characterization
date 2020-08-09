@@ -233,7 +233,7 @@ if __name__ == '__main__':
 
     
     #Define model
-    params = {'window_size': 1500,
+    params = {'window_size': args.audioDuration*100 -2,
               'mfcc_bands': 40,
               'n_channels': 1,
               'output_size': args.nbBands}

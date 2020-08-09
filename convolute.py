@@ -8,10 +8,11 @@ import numpy as np
 from scipy.signal import fftconvolve
 import pickle
 import shutil
+import sys
 
 # Custom imports
 from utils.resample import *
-from utils.mfcc import compute_norm_mfcc
+from utils.mfcc import compute_norm_mfcc, compute_melspectrogram, compute_logspectrogram2
 from utils.noise import get_white_noise, get_noise_from_sound
 
 def parse_args():
@@ -43,14 +44,14 @@ def parse_args():
     
     parser.add_argument(
         '-outFormat', '--outFormat',
-        type=str, default='mfcc', 
-        help='Output format --> mfcc or wavfile '
+        nargs = '+', type=str, required = True,
+        help='output format (mfcc mel wavfile)'
     )
     
     parser.add_argument(
         '-noiseSNR', '--noiseSNR',
         type=int, default=None, 
-        help='Add pink noise to rev signal at the specified SNR'
+        help='Add noise to rev signal at the specified SNR'
     )
     
     parser.add_argument(
@@ -114,15 +115,22 @@ if __name__ == '__main__':
         for rir_file in glob.glob(os.path.join(rirDir,'*.wav')):
             rir_name = os.path.splitext(os.path.basename(rir_file))[0]
 
-            if os.path.exists(os.path.join(outDir, rir_name, music_name + '.wav')):
+            #pass if already computed
+            if args.outFormat in ['mfcc','mel','logspectrogram'] and os.path.isfile(os.path.join(outDir, rir_name, music_name + '.pkl')):
+                continue
+            if args.outFormat == 'wavfile' and os.path.exists(os.path.join(outDir, rir_name, music_name + '.wav')):
                 continue
             
             #Read rir
             rir_sr, rir_sig = wavfile.read(rir_file)
             
-            #Make RIR directory
-            if not os.path.exists(os.path.join(outDir, rir_name)):
-                os.mkdir(os.path.join(outDir,rir_name))
+            #make output directories 
+            for param in args.outFormat:
+                if not os.path.exists(os.path.join(outDir,param)):
+                        os.makedirs(os.path.join(outDir,param))
+                #Make RIR directory
+                if not os.path.exists(os.path.join(outDir, param,rir_name)):
+                    os.mkdir(os.path.join(outDir,param,rir_name))
                     
             rir_sig = (rir_sig / np.max(np.abs(rir_sig))).flatten()
                         
@@ -131,10 +139,16 @@ if __name__ == '__main__':
             #Normalize reverberant signal
             music_rev = music_rev / np.max(np.abs(music_rev))
             
+            #fix length
+            music_rev = np.pad(music_rev,(0,m_sr*args.trim))[:m_sr*args.trim]
+            
             #Add noise
             if args.noiseSNR is not None:
                 if args.noiseType == 'white':
                     noise = get_white_noise(music_rev,args.noiseSNR)
+                elif args.noiseType == 'random':
+                    noiseSNR = np.random.randint(low=0,high=15)
+                    noise = get_white_noise(music_rev,noiseSNR)
                 elif args.noiseType == 'real':
                     if noiseFile is None:
                         print("Please specify noiseFile argument")
@@ -154,14 +168,35 @@ if __name__ == '__main__':
                     print("please specify noiseType")
                     sys.exit(1)
                     
+                #Add noise
                 music_rev = music_rev + noise
-                music_rev = music_rev / np.max(np.abs(music_rev))
+                
+                #normalize and convert back to float32
+                music_rev = np.float32(music_rev / np.max(np.abs(music_rev)))
                 
             
-            if args.outFormat == 'mfcc':
+            if 'mfcc' in args.outFormat:
                 mfcc = compute_norm_mfcc(music_rev,m_sr)
-                with open(os.path.join(outDir, rir_name, music_name + '.pkl'),'wb') as pkl_file:
+                with open(os.path.join(outDir,'mfcc', rir_name, music_name + '.pkl'),'wb') as pkl_file:
                     pickle.dump(mfcc,pkl_file)
                     
-            elif args.outFormat == 'wavfile':
-                wavfile.write(os.path.join(outDir, rir_name, music_name + '.wav'), m_sr, music_rev)
+            if 'mel' in args.outFormat:
+                mel = compute_melspectrogram(music_rev,m_sr)
+                with open(os.path.join(outDir, 'mel',rir_name, music_name + '.pkl'),'wb') as pkl_file:
+                    pickle.dump(mel,pkl_file)
+                    
+            if 'logspectrogram' in args.outFormat:
+                spec = compute_logspectrogram2(music_rev,m_sr)
+                with open(os.path.join(outDir, 'logspectrogram',rir_name, music_name + '.pkl'),'wb') as pkl_file:
+                    pickle.dump(spec,pkl_file)
+                    
+            if 'wavfile' in args.outFormat:
+                wavfile.write(os.path.join(outDir, 'wavfile',rir_name, music_name + '.wav'), m_sr, music_rev)
+        
+    #þrint shape for network input
+    if 'spectrogram' in args.outFormat:
+        print(f'spectrogram shape is {spec.shape}')
+    if 'mfcc' in args.outFormat:
+        print(f'mfcc shape is {mfcc.shape}')
+    if 'mel' in args.outFormat:
+        print(f'mel shape is {mel.shape}')

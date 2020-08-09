@@ -6,7 +6,7 @@ from scipy import stats, signal
 from scipy.io import wavfile
 import glob 
 import pickle
-from tqdm import tqdm
+import tqdm
 import os
 import acoustics
 from acoustics.signal import bandpass
@@ -21,18 +21,54 @@ def feature_normalize(dataset):
 #------------------------------------------------------------------------------------------
 def compute_norm_mfcc(signal,fs):
     signal = feature_normalize(signal)
-    mfcc = librosa.feature.mfcc(signal, fs, n_mfcc=40, hop_length=int(0.010*fs), n_fft=int(0.025*fs))
-    mfcc = librosa.util.fix_length(mfcc, 1500, axis=1, mode='wrap') #Reshape to windom size
+    mfcc = librosa.feature.mfcc(signal, fs, 
+                                n_mfcc=40, 
+                                hop_length=int(0.010*fs), 
+                                n_fft=int(0.025*fs),
+                                center=False)
     mfcc = librosa.util.normalize(mfcc, axis=1)
     return mfcc
 
+#------------------------------------------------------------------------------------------
+def compute_melspectrogram(signal,sr):
+    signal = feature_normalize(signal)
+    spec = librosa.feature.melspectrogram(signal, sr=sr, 
+                                          hop_length=int(0.010*sr), 
+                                          n_fft=int(0.025*sr),
+                                          n_mels = 40,
+                                          center=False)
+    spec = librosa.util.normalize(spec, axis=1)
+    return spec
+
+#------------------------------------------------------------------------------------------
+def compute_logspectrogram(signal):
+    signal = feature_normalize(signal)
+    fft = librosa.stft(signal)
+    fft_db = librosa.amplitude_to_db(np.abs(fft))
+    spec = librosa.util.normalize(fft_db, axis=1)
+    return spec
+
+#------------------------------------------------------------------------------------------
+def compute_logspectrogram2(signal,fs):
+    signal = feature_normalize(signal)
+    fft = librosa.stft(signal,n_fft=int(0.020*fs),hop_length=int(0.015*fs), win_length=int(0.020*fs))
+    fft_db = librosa.amplitude_to_db(np.abs(fft))
+    spec = librosa.util.normalize(fft_db, axis=1)
+    return spec
+
+#------------------------------------------------------------------------------------------
+def compute_logspectrogram3(signal,fs):
+    signal = feature_normalize(signal)
+    fft = librosa.stft(signal,n_fft=int(0.005*fs),hop_length=int(0.005*fs), win_length=int(0.005*fs))
+    fft_db = librosa.amplitude_to_db(np.abs(fft))
+    spec = librosa.util.normalize(fft_db, axis=1)
+    return spec
 #------------------------------------------------------------------------------------------
 def compute_norm_mfcc_3(signal,sr):
     signal = feature_normalize(signal)
     mfcc = librosa.feature.mfcc(y=signal, sr=sr, n_mfcc=40, hop_length=int(0.016*sr), n_fft=int(0.04*sr))
     mfcc = librosa.util.normalize(mfcc, axis=1)
     return mfcc
-
 #------------------------------------------------------------------------------------------
 def compute_norm_mfcc_2(signal,fs):
     signal = feature_normalize(signal)
@@ -60,7 +96,7 @@ def compute_music_mfccs(music_dir,output_folder,window_size = 645, mfcc_bands = 
     except:
         print("MFCC folder already exist")
         
-    for music_name in tqdm(music_list):
+    for music_name in tqdm.tqdm(music_list):
         filename = os.path.splitext(os.path.basename(music_name))[0]
 
         m_sr, music =  wavfile.read(music_name)

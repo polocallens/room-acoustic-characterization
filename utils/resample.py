@@ -9,19 +9,42 @@ def resample_file(file,sampling_rate = 16000, channels = 1):
     return out_file
 
 #---------------------------------------------------------------------------------
+
+def resample_trim_file(file, trim, sampling_rate = 16000, channels = 1):
+    
+    out_file = os.path.splitext(file)[0] + '_resampled_trimmed' + '.wav'
+    
+    out_dir, filename = os.path.split(file)
+    
+    temp_filepath = os.path.join(out_dir,'temp_' + filename)
+    temp_filepath2 = os.path.join(out_dir,'temp2_' + filename)
+      
+    call('sox ' + file + ' ' + temp_filepath2 + ' pad 0 ' + str(trim),shell=True)
+    call('sox ' + temp_filepath2 + ' ' + temp_filepath + ' trim 0 ' + str(trim),shell=True)
+    call('sox -G ' +  temp_filepath + ' -r '+str(sampling_rate)+' -e float -c '+str(channels)+' ' + out_file + ' norm',shell=True)
+    
+    os.remove(temp_filepath)
+    os.remove(temp_filepath2)
+    
+    return out_file
+#---------------------------------------------------------------------------------
 def resample_audio_dir(file_dir, sampling_rate = 16000, channels = 1, trim = None, trim_silence = False):
     
-    print(f'------- Normalizing directory : {file_dir} -------')
-    file_list = sorted(glob.glob(os.path.join(file_dir, '*.wav')))
+    
+    print(f'------- Resampling directory : {file_dir} -------')
+    
 
     if trim is not None :
         out_dir = file_dir.strip("/") + '_sr' + str(sampling_rate) + '_c_' + str(channels)  + '_' + str(trim) + 's'
     else :
         out_dir = file_dir.strip("/") + '_sr' + str(sampling_rate) + '_c_' + str(channels)
     
+    file_list = sorted(glob.glob(os.path.join(file_dir, '*.wav')))
+    
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
-    
+    else:
+        return(out_dir + '/')
     
     for file in tqdm.tqdm(file_list):
         filename = os.path.split(file)[1]
