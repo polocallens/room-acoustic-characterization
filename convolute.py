@@ -12,7 +12,7 @@ import sys
 
 # Custom imports
 from utils.resample import *
-from utils.mfcc import compute_norm_mfcc, compute_melspectrogram, compute_logspectrogram2
+from utils.mfcc import compute_norm_mfcc, compute_melspectrogram, compute_logspectrogram2, compute_logspectrogram3
 from utils.noise import get_white_noise, get_noise_from_sound
 
 def parse_args():
@@ -194,8 +194,8 @@ if __name__ == '__main__':
                 wavfile.write(os.path.join(outDir, 'wavfile',rir_name, music_name + '.wav'), m_sr, music_rev)
         
     #þrint shape for network input
-    if 'spectrogram' in args.outFormat:
-        print(f'spectrogram shape is {spec.shape}')
+    if 'logspectrogram' in args.outFormat:
+        print(f'logspectrogram shape is {spec.shape}')
     if 'mfcc' in args.outFormat:
         print(f'mfcc shape is {mfcc.shape}')
     if 'mel' in args.outFormat:
