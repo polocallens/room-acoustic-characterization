@@ -24,8 +24,9 @@ This repository contains machine learning based methods to teach such faculties 
 
 
 ## Method
+
+Function block diagram of the method
 ![Methodology](figs/Methodology.png)
-![Network Architecture](figs/Network_architecture.png)
 
 
 ## Technologies
