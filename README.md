@@ -3,10 +3,11 @@
 
 ## Table of contents
 * [General info](#general-info)
-* [Screenshots](#screenshots)
+* [Method](#Method)
 * [Technologies](#technologies)
 * [Setup](#setup)
 * [Usage](#usage)
+* [Example](#example)
 * [Contact](#contact)
 
 ## General info
