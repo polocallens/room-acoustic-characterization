@@ -24,9 +24,9 @@ This repository contains machine learning based methods to teach such faculties 
 
 
 ## Method
-![Example screenshot](figs/methodology.png)
+![Methodology](figs/Methodology.png)
+![Network Architecture](figs/Network_architecture.png)
 
-![Example screenshot](./rt60pred.png)
 
 ## Technologies
 * python - version 3.7
