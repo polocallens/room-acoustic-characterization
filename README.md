@@ -47,19 +47,10 @@ conda env create -f environment.yml
 
 ## Usage
 ### Getting dataset
-- RIR dataset
-```console
-wget 
-```
-- music dataset
-```console
-wget 
-```
 
-- speech dataset
-```console
-wget 
-```
+The train and test datasets as well as the weights can be found in the NAS in this directory:
+//ch01nas03.logitech.com/Development/Internships/2020\ Spring/Paul\ Callens\ -\ Room\ acoustic\ characterization/
+
 
 ### Prepare dataset
 - 1. From data to network input
@@ -67,7 +58,8 @@ Trim, resample, normalize audio, convolve to simulate room reverberation and com
 
 ```console
 python convolute.py [-h] -audioDir AUDIODIR -rirDir RIRDIR -outDir OUTDIR -trim
-               TRIM [-outFormat OUTFORMAT]
+               TRIM -outFormat OUTFORMAT [OUTFORMAT ...] [-noiseSNR NOISESNR]
+               [-noiseType NOISETYPE] [-noiseFile NOISEFILE]
 ```
 
 |Short       |Long         |Default|Description                                                                          |
@@ -77,13 +69,15 @@ python convolute.py [-h] -audioDir AUDIODIR -rirDir RIRDIR -outDir OUTDIR -trim
 |`-rirDir`   |`--rirDir`   |`None` |rir directory                                                                        |
 |`-outDir`   |`--outDir`   |`None` |output directory                                                                     |
 |`-trim`     |`--trim`     |`None` |Audio length in seconds                                                              |
-|`-outFormat`|`--outFormat`|`mfcc` |Output format --> mfcc or wavfile                                                    |
-|`-noiseSNR` |`--noiseSNR` |`None` |Add pink noise to rev signal at the specified SNR                                    |
-|`-noiseType`|`--noiseType`|`white`|Type of noise --> white or real. if real, please specify file with noiseFile argument|
+|`-outFormat`|`--outFormat`|`None` |output format (mfcc mel wavfile)                                                     |
+|`-noiseSNR` |`--noiseSNR` |`None` |Add noise to rev signal at the specified SNR                                         |
+|`-noiseType`|`--noiseType`|`white`|Type of noise --> white, random or real. if real, please specify file with noiseFile |
 |`-noiseFile`|`--noiseFile`|`None` |Path to real noise file                                                              |
+
 
 New audio and RIR directories will be created containing the re-sampled and trimmed wav files. 
 Please use the new RIR directory to compute the true acoustic values in the following command. 
+To add random noise, please specify -noiseSNR 0 and -noiseType random
 
 - 2. Compute true acoustic values from normed rir directory
 
@@ -108,14 +102,13 @@ It will create subdirectories for each parameter and pickle files with the name 
 Once the preparation is done, you can start training your network with :
 
 ```console
-python train_from_rev.py [-h] -xDir XDIR -yDir YDIR [-outDir OUTDIR] -name NAME
+python train.py [-h] -xDir XDIR -yDir YDIR [-outDir OUTDIR] -name NAME
                [-load_weights LOAD_WEIGHTS] [-n_epochs N_EPOCHS]
                [-window_size WINDOW_SIZE] [-mfcc_bands MFCC_BANDS]
                [-n_channels N_CHANNELS] [-output_size OUTPUT_SIZE]
                [-batch_size BATCH_SIZE] [-y_param Y_PARAM] [-net NET]
                [-lr LEARNING_RATE] [-gpu GPU]
 ```
-
 |Short          |Long             |Default     |Description                                             |
 |---------------|-----------------|------------|--------------------------------------------------------|
 |`-h`           |`--help`         |            |show this help message and exit                         |
@@ -124,38 +117,52 @@ python train_from_rev.py [-h] -xDir XDIR -yDir YDIR [-outDir OUTDIR] -name NAME
 |`-outDir`      |`--outDir`       |`trainings/`|output directory where to save logs and weights         |
 |`-name`        |`--name`         |`None`      |Training label /!\ No space please.                     |
 |`-load_weights`|`--load_weights` |`None`      |path to weights to load, default None does not load any.|
-|`-n_epochs`    |`--n_epochs`     |`200`       |Number of epochs before finish.                         |
-|`-window_size` |`--window_size`  |`1500`      |mfcc window size                                        |
+|`-n_epochs`    |`--n_epochs`     |`1000`      |Number of epochs before finish.                         |
+|`-window_size` |`--window_size`  |`798`       |mfcc window size                                        |
 |`-mfcc_bands`  |`--mfcc_bands`   |`40`        |Number of mfcc bands (along freq axis)                  |
 |`-n_channels`  |`--n_channels`   |`1`         |Numbers of mfccs stacked for input                      |
 |`-output_size` |`--output_size`  |`6`         |output shapes [number of freq bands]                    |
 |`-batch_size`  |`--batch_size`   |`64`        |Network batch size                                      |
 |`-y_param`     |`--y_param`      |`t60`       |Output to learn : t60, drr, c50, c80, all               |
-|`-net`         |`--net`          |`CRNN2D`    |which neural net to train                               |
+|`-net`         |`--net`          |`CRNN2D_2`  |which neural net to train                               |
 |`-lr`          |`--learning_rate`|`0.001`     |adam learning rate                                      |
 |`-gpu`         |`--gpu`          |`1`         |gpu 0 or gpu 1                                          |
 
-### Testing
-A modulable testing Notebook is available in the Notebook directory.
+
 
 ### Replicate results
-Another way of testing and reproducing the results with speech and t60 predictions. Run :
-```console
-python replicate.py
+- 1. Simulate reverberation from audio and rir file:
+```
+python simulate_reverberation [-h] -audio AUDIO -rir RIR -trim TRIM [-noiseSNR NOISESNR]
+               [-noiseType NOISETYPE] [-noiseFile NOISEFILE]
+```
+|Short       |Long         |Default|Description                                                                          |
+|------------|-------------|-------|-------------------------------------------------------------------------------------|
+|`-h`        |`--help`     |       |show this help message and exit                                                      |
+|`-audio`    |`--audio`    |`None` |Audio file                                                                           |
+|`-rir`      |`--rir`      |`None` |RIR file                                                                             |
+|`-trim`     |`--trim`     |`None` |Audio length in seconds                                                              |
+|`-noiseSNR` |`--noiseSNR` |`None` |Add noise to rev signal at the specified SNR                                         |
+|`-noiseType`|`--noiseType`|`white`|Type of noise --> white or real. if real, please specify file with noiseFile argument|
+|`-noiseFile`|`--noiseFile`|`None` |Path to real noise file                                                              |
+
+
+- 2. Make predictions
+
+```
+python predict_params.py [-h] -revAudio REVAUDIO [-gpu GPU] [-param PARAM] [-rir RIR]
+               [-model MODEL] -weights WEIGHTS
 ```
 
-|Short           |Long             |Default                                                    |Description                                             |
-|----------------|-----------------|-----------------------------------------------------------|--------------------------------------------------------|
-|`-h`            |`--help`         |                                                           |show this help message and exit                         |
-|`-audioDir`     |`--audioDir`     |`datasets/final_ds/Test/speech/`                           |Audio directory.                                        |
-|`-rirDir`       |`--rirDir`       |`datasets/final_ds/Test/RIR_final/`                        |rir directory                                           |
-|`-gpu`          |`--gpu`          |`0`                                                        |GPU used for computation                                |
-|`-audioDuration`|`--audioDuration`|`15`                                                       |Length of audio signal to use in seconds                |
-|`-nbBands`      |`--nbBands`      |`6`                                                        |number of output bands, 6 or 12 (6 for joint estimation)|
-|`-param`        |`--param`        |`t60`                                                      |Parameter to predict among t60,c50,c80,drr,all          |
-|`-model`        |`--model`        |`CRNN2D`                                                   |Network to use for inference                            |
-|`-loadWeights`  |`--loadWeights`  |`trainings/weights/weights.best.t60_speech_RCNN_final.hdf5`|If you want to specify which weights to use             |
-|`-plot`         |`--plot`         |`None`                                                     |outputs plot predictions vs truth                       |
+|Short      |Long        |Default              |Description                                    |
+|-----------|------------|---------------------|-----------------------------------------------|
+|`-h`       |`--help`    |                     |show this help message and exit                |
+|`-revAudio`|`--revAudio`|`None`               |reverberant audio file.                        |
+|`-gpu`     |`--gpu`     |`0`                  |GPU used for computation                       |
+|`-param`   |`--param`   |`t60`                |Parameter to predict among t60,c50,c80,drr,all |
+|`-rir`     |`--rir`     |`None`               |Specify rir to print true output               |
+|`-model`   |`--model`   |`CRNN2D_largefilters`|Network to use for inference                   |
+|`-weights` |`--weights` |`None`               |Load model weights                             |
 
 
 ## Contact
