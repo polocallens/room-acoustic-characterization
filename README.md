@@ -130,7 +130,7 @@ python train.py [-h] -xDir XDIR -yDir YDIR [-outDir OUTDIR] -name NAME
 
 
 
-### Replicate results
+### Example
 - 1. Simulate reverberation from audio and rir file:
 ```
 python simulate_reverberation [-h] -audio AUDIO -rir RIR -trim TRIM [-noiseSNR NOISESNR]
