@@ -130,7 +130,7 @@ if __name__ == '__main__':
                         os.makedirs(os.path.join(outDir,param))
                 #Make RIR directory
                 if not os.path.exists(os.path.join(outDir, param,rir_name)):
-                    os.mkdir(os.path.join(outDir,param,rir_name))
+                    os.makedirs(os.path.join(outDir,param,rir_name))
                     
             rir_sig = (rir_sig / np.max(np.abs(rir_sig))).flatten()
                         
@@ -186,7 +186,7 @@ if __name__ == '__main__':
                     pickle.dump(mel,pkl_file)
                     
             if 'logspectrogram' in args.outFormat:
-                spec = compute_logspectrogram2(music_rev,m_sr)
+                spec = compute_logspectrogram3(music_rev,m_sr)
                 with open(os.path.join(outDir, 'logspectrogram',rir_name, music_name + '.pkl'),'wb') as pkl_file:
                     pickle.dump(spec,pkl_file)
                     

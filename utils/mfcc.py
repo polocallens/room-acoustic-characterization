@@ -29,6 +29,7 @@ def compute_norm_mfcc(signal,fs):
     mfcc = librosa.util.normalize(mfcc, axis=1)
     return mfcc
 
+
 #------------------------------------------------------------------------------------------
 def compute_melspectrogram(signal,sr):
     signal = feature_normalize(signal)
