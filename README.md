@@ -3,7 +3,7 @@
 
 ## Table of contents
 * [General info](#general-info)
-* [Method](#Method)
+* [Method](#method)
 * [Technologies](#technologies)
 * [Setup](#setup)
 * [Usage](#usage)
@@ -51,8 +51,7 @@ conda env create -f environment.yml
 ### Getting dataset
 
 The train and test datasets as well as the weights can be found in the NAS in this directory:
-//ch01nas03.logitech.com/Development/Internships/2020\ Spring/Paul\ Callens\ -\ Room\ acoustic\ characterization/
-
+[smb://ch01nas03.logitech.com/Development/Internships/2020\ Spring/Paul\ Callens\ -\ Room\ acoustic\ characterization/](smb://ch01nas03.logitech.com/Development/Internships/2020\ Spring/Paul\ Callens\ -\ Room\ acoustic\ characterization/)
 
 ### Prepare dataset
 - 1. From data to network input
