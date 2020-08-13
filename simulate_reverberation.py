@@ -11,7 +11,7 @@ from utils.resample import *
 from utils.noise import get_white_noise, get_noise_from_sound
 
 def parse_args():
-    parser = ArgumentParser(description='MakeConvDataset')
+    parser = ArgumentParser(description='Simulate reverberation')
     
     parser.add_argument(
         '-audio', '--audio',

@@ -57,7 +57,7 @@ def parse_args():
     parser.add_argument(
         '-noiseType', '--noiseType',
         type=str, default='white', 
-        help='Type of noise --> white or real. if real, please specify file with noiseFile argument'
+        help='Type of noise --> white, random or real. if real, please specify file with noiseFile argument'
     )
     
     parser.add_argument(
