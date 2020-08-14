@@ -647,3 +647,86 @@ def CRNN2D_giantfilters(X_shape, nb_classes):
     #model.add(Activation("relu"))
     return model
 
+#---------------------------------------------------------------------------------
+
+def CNN(X_shape, nb_classes):
+
+    nb_layers = 6  # number of convolutional layers
+    nb_filters = [8, 8, 16, 16,32,32]  # filter sizes
+    kernel_size = (3, 3)  # convolution kernel size
+    activation = 'elu'  # activation function to use after each layer
+    pool_size = [(2, 3), (2, 3), (2, 3), (2, 3),
+                 (2, 3),(2,3)]  # size of pooling area
+
+    # shape of input data (frequency, time, channels)
+    input_shape = (X_shape[1], X_shape[2], X_shape[3])
+    frequency_axis = 1
+    time_axis = 2
+    channel_axis = 3
+
+    # Create sequential model and normalize along frequency axis
+    model = Sequential()
+    
+    model.add(BatchNormalization(axis=frequency_axis, input_shape=input_shape))
+   
+    # First convolution layer specifies shape
+    model.add(Conv2D(nb_filters[0], kernel_size=kernel_size, padding='same',
+                     data_format="channels_last",
+                     input_shape=input_shape))
+    model.add(Activation(activation))
+    model.add(BatchNormalization(axis=channel_axis))
+    model.add(MaxPooling2D(pool_size=pool_size[0], strides=pool_size[0],))
+    model.add(Dropout(0.1))
+
+    # Add more convolutional layers
+    for layer in range(nb_layers - 1):
+        # Convolutional layer
+        model.add(Conv2D(nb_filters[layer + 1], kernel_size=kernel_size,
+                         padding='same'))
+        model.add(Activation(activation))
+        model.add(BatchNormalization(axis=channel_axis))  # Improves overfitting/underfitting
+        model.add(MaxPooling2D(pool_size=pool_size[layer + 1],
+                               strides=pool_size[layer + 1],
+                              data_format="channels_first"))  # Max pooling
+        model.add(Dropout(0.1))
+
+        
+    model.add(Flatten())
+    # Output layer
+    model.add(Dense(128,activation=activation))
+    model.add(Dropout(0.1))
+    model.add(Dense(64,activation=activation))
+    model.add(Dense(nb_classes))
+    #model.add(Activation("relu"))
+    return model
+
+#---------------------------------------------------------------------------------
+
+def MLP(X_shape, nb_classes):
+
+    activation = 'elu'  # activation function to use after each layer
+    # shape of input data (frequency, time, channels)
+    input_shape = (X_shape[1], X_shape[2], X_shape[3])
+    frequency_axis = 1
+    time_axis = 2
+    channel_axis = 3
+
+    
+    
+    model = Sequential()
+    
+    model.add(BatchNormalization(axis=frequency_axis, input_shape=input_shape))
+    model.add(Flatten())
+    model.add(Dense(128,activation=activation))
+    model.add(Dense(128,activation=activation))
+    model.add(Dense(128,activation=activation))
+    model.add(Dense(128,activation=activation))
+    model.add(Dropout(0.1))
+    model.add(Dense(128,activation=activation))
+    model.add(Dropout(0.1))
+    model.add(Dense(128,activation=activation))
+    model.add(Dropout(0.1))
+    model.add(Dense(64,activation=activation))
+    model.add(Dense(nb_classes))
+    #model.add(Activation("relu"))
+    return model
