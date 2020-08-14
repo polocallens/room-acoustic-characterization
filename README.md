@@ -3,10 +3,11 @@
 
 ## Table of contents
 * [General info](#general-info)
-* [Screenshots](#screenshots)
+* [Method](#method)
 * [Technologies](#technologies)
 * [Setup](#setup)
 * [Usage](#usage)
+* [Example](#example)
 * [Contact](#contact)
 
 ## General info
@@ -24,9 +25,10 @@ This repository contains machine learning based methods to teach such faculties 
 
 
 ## Method
-![Example screenshot](figs/methodology.png)
 
-![Example screenshot](./rt60pred.png)
+Function block diagram of the method
+![Methodology](figs/Methodology.png)
+
 
 ## Technologies
 * python - version 3.7
@@ -49,9 +51,9 @@ conda env create -f environment.yml
 ### Getting dataset
 
 The train and test datasets as well as the weights can be found in the NAS in this directory:
-//ch01nas03.logitech.com/Development/Internships/2020\ Spring/Paul\ Callens\ -\ Room\ acoustic\ characterization/
-
-
+```
+smb://ch01nas03.logitech.com/Development/Internships/2020\ Spring/Paul\ Callens\ -\ Room\ acoustic\ characterization/
+```
 ### Prepare dataset
 - 1. From data to network input
 Trim, resample, normalize audio, convolve to simulate room reverberation and compute mfccs
