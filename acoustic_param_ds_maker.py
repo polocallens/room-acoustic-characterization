@@ -48,6 +48,15 @@ if __name__ == '__main__':
     # Parse command-line arguments
     args = parse_args()
     
+    #t60_m = 
+    #t60_sig =
+    #c50_m = 
+    #c50_sig =
+    #c80_m = 
+    #c80_sig =
+    #drr_m = 
+    #drr_sig =
+    
     if not os.path.exists(args.outDir):
         os.mkdir(args.outDir)
 
@@ -123,9 +132,14 @@ if __name__ == '__main__':
         if 'drr' in params:
             drr = drr_impulse(rir, rir_sr, bands)
         
+        #HERE WE CAN HARDCODE THE NORMALIZATION 
         if 'all' in params:
             all = np.hstack((t60.mean(),c50.mean(),c80.mean(),drr.mean()))
-            
+            #t60_n = (t60.mean()-t60_m)/t60_sig
+            #c50_n = (c50.mean()-c50_m)/c50_sig
+            #c80_n = (c80.mean()-c80_m)/c80_sig
+            #drr_n = (drr.mean()-drr_m)/drr_sig
+            #all = np.hstack((t60_n,c50_n,c80_n,drr_n))
             
         filename = os.path.splitext(os.path.basename(rir_file))[0]
 
